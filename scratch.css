@@ -1,0 +1,43 @@
+body{
+    background-color: #eee182;
+    font-family:cursive;
+}
+
+h1{
+    color: #000;
+    text-align: center;
+}
+
+.top{
+    background-color: #f8f3f3;
+    color: #b24720;
+    padding: 10px;
+    text-align: center;
+}
+
+
+.video{
+        display: block;
+        margin: 0 auto;
+}
+
+li{
+    margin: 0;
+    padding: 0;
+    text-align: left;
+}
+.book{
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    line-height: 25px;
+}
+
+.bold{
+    font-weight: bold;
+}
+
+.tableauPlaceholder {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+  }
