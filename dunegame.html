@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sandworm Snake Game</title>
+  <style>
+    html, body { margin: 0; padding: 0; overflow: hidden; }
+    canvas { display: block; margin: auto; background-color: #C2B280; }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="600" height="400"></canvas>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    const cellSize = 20, cols = W / cellSize, rows = H / cellSize;
+
+    let worm = [], dir = {x:1,y:0}, nextDir = {x:1,y:0};
+    let food = {}, ships = [], bullets = [];
+    let lives = 3, score = 0, gameOver = false;
+    const initLength = 5;
+
+    // create noise‐texture background
+    const noiseCanvas = document.createElement('canvas');
+    noiseCanvas.width = W; noiseCanvas.height = H;
+    const nCtx = noiseCanvas.getContext('2d');
+    for (let i=0; i<8000; i++){
+      let x = Math.random()*W, y = Math.random()*H;
+      nCtx.fillStyle = `rgba(255,255,255,${Math.random()*0.05})`;
+      nCtx.fillRect(x,y,1,1);
+    }
+
+    function resetGame(){
+      worm = [];
+      const cx = Math.floor(cols/2), cy = Math.floor(rows/2);
+      for(let i=0; i<initLength; i++){
+        worm.push({x: cx - i, y: cy});
+      }
+      dir = nextDir = {x:1,y:0};
+      spawnFood();
+      bullets = [];
+      ships = [];
+      lives = 3;
+      score = 0;
+      for(let i=0; i<3; i++){
+        ships.push({
+          w: cellSize*2, h: cellSize*0.8,
+          x: Math.random()*(W - cellSize*2),
+          y: 2,
+          speed: (Math.random()>0.5?1:-1)*1.5
+        });
+      }
+      gameOver = false;
+    }
+
+    function spawnFood(){
+      let x, y;
+      do {
+        x = Math.floor(Math.random()*cols);
+        y = Math.floor(Math.random()*rows);
+      } while (worm.some(s=>s.x===x && s.y===y));
+      food = {x, y};
+    }
+
+    function handleDeath(){
+      lives--;
+      if (lives > 0) {
+        // reset worm but keep score
+        const cx = Math.floor(cols/2), cy = Math.floor(rows/2);
+        worm = [];
+        for(let i=0; i<initLength; i++){
+          worm.push({x: cx - i, y: cy});
+        }
+        dir = nextDir = {x:1,y:0};
+      } else {
+        gameOver = true;
+      }
+    }
+
+    function update(){
+      if (gameOver) return;
+      if (!(nextDir.x===-dir.x && nextDir.y===-dir.y)) dir = nextDir;
+
+      const head = {...worm[0],};
+      head.x += dir.x; head.y += dir.y;
+
+      // wall or self‑collision
+      if (head.x<0||head.x>=cols||head.y<0||head.y>=rows ||
+          worm.some(s=>s.x===head.x&&s.y===head.y)) {
+        handleDeath();
+        return;
+      }
+
+      worm.unshift(head);
+
+      if (head.x === food.x && head.y === food.y) {
+        score++;
+        spawnFood();
+      } else {
+        worm.pop();
+      }
+
+      ships.forEach(ship => {
+        ship.x += ship.speed;
+        if (ship.x<0||ship.x+ship.w>W) ship.speed*=-1;
+        if (Math.random()<0.01){
+          bullets.push({
+            x: ship.x+ship.w/2,
+            y: ship.y+ship.h,
+            vy: 3
+          });
+        }
+      });
+
+      bullets = bullets.filter(b => {
+        b.y += b.vy;
+        const bx = Math.floor(b.x/cellSize), by = Math.floor(b.y/cellSize);
+        if (bx===head.x && by===head.y) {
+          handleDeath();
+          return false;
+        }
+        return b.y < H;
+      });
+    }
+
+    function draw(){
+      ctx.clearRect(0,0,W,H);
+      ctx.drawImage(noiseCanvas,0,0);
+
+      // food (Harkonnen men)
+      ctx.fillStyle = 'darkred';
+      ctx.fillRect(food.x*cellSize, food.y*cellSize, cellSize, cellSize);
+
+      // worm
+      worm.forEach((seg,i)=>{
+        ctx.fillStyle = i===0 ? 'lightgreen' : 'green';
+        ctx.fillRect(seg.x*cellSize, seg.y*cellSize, cellSize, cellSize);
+      });
+
+      // ships
+      ships.forEach(s=>{
+        ctx.fillStyle = 'black';
+        ctx.fillRect(s.x, s.y, s.w, s.h);
+      });
+
+      // bullets
+      ctx.fillStyle = 'yellow';
+      bullets.forEach(b=>{
+        ctx.fillRect(b.x-2, b.y, 4, 8);
+      });
+
+      // UI: lives & score
+      ctx.fillStyle = 'white';
+      ctx.font = '18px sans-serif';
+      ctx.fillText(`Lives: ${lives}`, 10, 24);
+      ctx.fillText(`Score: ${score}`, 10, 48);
+
+      if (gameOver) {
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(0,0,W,H);
+        ctx.fillStyle = 'white';
+        ctx.textAlign = 'center';
+        ctx.font = '48px sans-serif';
+        ctx.fillText('GAME OVER', W/2, H/2);
+        ctx.font = '20px sans-serif';
+        ctx.fillText('Press Enter to Restart', W/2, H/2+40);
+      }
+    }
+
+    // loop & controls
+    resetGame();
+    setInterval(()=>{
+      update();
+      draw();
+    }, 100);
+
+    document.addEventListener('keydown', e=>{
+      if (gameOver && e.key==='Enter') resetGame();
+      if (e.key==='ArrowUp')    nextDir={x:0,y:-1};
+      if (e.key==='ArrowDown')  nextDir={x:0,y:1};
+      if (e.key==='ArrowLeft')  nextDir={x:-1,y:0};
+      if (e.key==='ArrowRight') nextDir={x:1,y:0};
+    });
+  </script>
+</body>
+</html>
