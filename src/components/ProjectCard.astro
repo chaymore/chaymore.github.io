@@ -1,0 +1,35 @@
+---
+interface Props {
+  title: string;
+  description: string;
+  tags: string[];
+  href?: string;
+  repo?: string;
+}
+
+const { title, description, tags, href, repo } = Astro.props;
+---
+
+<div class="border border-zinc-800 rounded-lg p-5 flex flex-col gap-3 hover:border-zinc-600 transition-colors">
+  <div class="flex items-start justify-between gap-4">
+    <h3 class="font-semibold text-zinc-100">{title}</h3>
+    <div class="flex gap-3 shrink-0 text-zinc-400">
+      {repo && (
+        <a href={repo} target="_blank" rel="noopener noreferrer" class="hover:text-zinc-100 transition-colors text-sm">
+          GitHub →
+        </a>
+      )}
+      {href && (
+        <a href={href} target="_blank" rel="noopener noreferrer" class="hover:text-zinc-100 transition-colors text-sm">
+          Live →
+        </a>
+      )}
+    </div>
+  </div>
+  <p class="text-sm text-zinc-400 leading-relaxed">{description}</p>
+  <div class="flex flex-wrap gap-2 mt-1">
+    {tags.map(tag => (
+      <span class="text-xs px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400">{tag}</span>
+    ))}
+  </div>
+</div>
