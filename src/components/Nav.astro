@@ -1,16 +1,23 @@
 ---
+import { pageLinks, site } from '../data/site';
 ---
 
-<nav class="fixed top-0 left-0 right-0 z-50 border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-sm">
-  <div class="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
-    <a href="#" class="text-sm font-semibold tracking-tight text-zinc-100">Caleb Haymore</a>
-    <div class="flex gap-6 text-sm text-zinc-400">
-      <a href="#about" class="hover:text-zinc-100 transition-colors">About</a>
-      <a href="#competitions" class="hover:text-zinc-100 transition-colors">Competitions</a>
-      <a href="#research" class="hover:text-zinc-100 transition-colors">Research</a>
-      <a href="#essays" class="hover:text-zinc-100 transition-colors">Essays</a>
-      <a href="#projects" class="hover:text-zinc-100 transition-colors">Projects</a>
-      <a href="#contact" class="hover:text-zinc-100 transition-colors">Contact</a>
+<nav class="fixed top-0 left-0 right-0 z-50 border-b border-zinc-700 bg-black/95">
+  <div class="site-shell h-16 flex items-center justify-between gap-6">
+    <a href="/" class="text-xs sm:text-sm font-bold uppercase tracking-[0.22em] text-zinc-100">~/caleb</a>
+    <div class="hidden md:flex gap-1 text-xs text-zinc-400" aria-label="Primary navigation">
+      <span class="text-zinc-600">[</span>
+      {pageLinks.slice(1).map((link) => (
+        <a href={link.href} class="px-2 uppercase hover:text-white transition-colors">{link.label}</a>
+      ))}
+      <span class="text-zinc-600">]</span>
     </div>
+    <div class="md:hidden text-xs text-zinc-400">[MENU]</div>
+    <div class="hidden lg:block text-xs text-zinc-600" aria-hidden="true">{site.tagline}</div>
+  </div>
+  <div class="site-shell nav-mobile md:hidden pb-3">
+    {pageLinks.slice(1).map((link) => (
+      <a href={link.href} class="uppercase hover:text-white transition-colors">{link.label}</a>
+    ))}
   </div>
 </nav>

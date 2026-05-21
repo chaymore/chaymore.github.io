@@ -1,0 +1,36 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Nav from '../components/Nav.astro';
+import { competitions, site } from '../data/site';
+---
+
+<Layout title={`${site.name} | Competitions`}>
+  <Nav />
+
+  <main class="site-shell pt-28 pb-24 flex flex-col gap-8">
+    <header class="flex flex-col gap-3 pb-4">
+      <p class="text-xs uppercase tracking-[0.22em] text-zinc-500">caleb@portfolio:~$ tail competitions.log</p>
+      <h1 class="text-4xl font-bold text-zinc-100">Case Competitions</h1>
+      <p class="text-zinc-400 max-w-2xl">
+        A dedicated archive for competitive work, outcomes, and what each case required.
+      </p>
+      <div class="ascii-rule" aria-hidden="true"></div>
+    </header>
+
+    <section class="grid gap-4">
+      {competitions.map((comp) => (
+        <article class="ascii-panel p-5 flex flex-col gap-3 hover:border-zinc-400 transition-colors" data-title={comp.year}>
+          <div class="flex items-center justify-between gap-4">
+            <h2 class="font-bold text-zinc-100">{comp.name}</h2>
+            <div class="flex items-center gap-3 shrink-0 text-sm text-zinc-500">
+              {comp.placement && <span class="text-zinc-100 font-medium">{comp.placement}</span>}
+              <span>{comp.year}</span>
+            </div>
+          </div>
+          <pre class="ascii-pre text-zinc-500">{`analysis -> model -> recommendation -> defense`}</pre>
+          <p class="text-sm text-zinc-400 leading-relaxed">{comp.description}</p>
+        </article>
+      ))}
+    </section>
+  </main>
+</Layout>

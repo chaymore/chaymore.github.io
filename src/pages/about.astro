@@ -1,0 +1,56 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Nav from '../components/Nav.astro';
+import { site } from '../data/site';
+---
+
+<Layout title={`${site.name} | About`}>
+  <Nav />
+
+  <main class="site-shell pt-28 pb-24 flex flex-col gap-10">
+    <header class="flex flex-col gap-3 pb-4">
+      <p class="text-xs uppercase tracking-[0.22em] text-zinc-500">caleb@portfolio:~$ cat about.txt</p>
+      <h1 class="text-4xl font-bold text-zinc-100">About</h1>
+      <div class="ascii-rule" aria-hidden="true"></div>
+    </header>
+
+    <section class="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] items-start">
+      <div class="ascii-portrait" aria-label="ASCII portrait placeholder">
+        <pre>{`             .-""""-.
+          .-'  .--.  '-.
+        .'   .'    '.   '.
+       /    /  .--.  \\    \\
+      |    |  /_  _\\  |    |
+      |    |   o  o   |    |
+      |    |     >    |    |
+      |    |  \\____/  |    |
+       \\    \\        /    /
+        '.   '.__.'   .'
+          '-.______.-'
+
+       [ profile image slot ]
+       public/profile.jpg`}</pre>
+      </div>
+
+      <div class="ascii-panel p-6 flex flex-col gap-5 text-zinc-300 leading-relaxed" data-title="bio-record">
+        <p class="text-lg text-zinc-100">{site.name}</p>
+        <p>{site.intro}</p>
+        <p>
+          I am drawn to the place where capital, rules, and technical systems start shaping each
+          other. That includes case work, research questions, and small tools that preserve context
+          instead of letting it vanish between days.
+        </p>
+        <p>
+          Outside the work, the pattern is still pretty consistent: tennis for fast feedback,
+          science fiction for long-horizon thinking, and writing as a way to make the fuzzy parts
+          legible.
+        </p>
+        <pre class="ascii-pre text-zinc-400">{`+------------------+----------------------+
+| focus            | finance / law / tech |
+| operating mode   | compare, synthesize  |
+| preferred output | notes, systems, work |
++------------------+----------------------+`}</pre>
+      </div>
+    </section>
+  </main>
+</Layout>

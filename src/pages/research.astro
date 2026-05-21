@@ -1,0 +1,43 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Nav from '../components/Nav.astro';
+import { research, site } from '../data/site';
+---
+
+<Layout title={`${site.name} | Research`}>
+  <Nav />
+
+  <main class="site-shell pt-28 pb-24 flex flex-col gap-8">
+    <header class="flex flex-col gap-3 pb-4">
+      <p class="text-xs uppercase tracking-[0.22em] text-zinc-500">caleb@portfolio:~$ grep -R questions research/</p>
+      <h1 class="text-4xl font-bold text-zinc-100">Research</h1>
+      <p class="text-zinc-400 max-w-2xl">
+        Papers, open questions, and longer-form investigation collected in one place.
+      </p>
+      <div class="ascii-rule" aria-hidden="true"></div>
+    </header>
+
+    <section class="ascii-panel p-5" data-title="research-index">
+      <table class="ascii-table">
+        <thead>
+          <tr>
+            <th>id</th>
+            <th>title</th>
+            <th>abstract</th>
+            <th>link</th>
+          </tr>
+        </thead>
+        <tbody>
+      {research.map((paper, index) => (
+        <tr>
+          <td>R-{String(index + 1).padStart(2, '0')}</td>
+          <td class="text-zinc-100">{paper.title}</td>
+          <td>{paper.abstract}</td>
+          <td>{paper.href ? <a href={paper.href} class="ascii-link">[read]</a> : '[draft]'}</td>
+        </tr>
+      ))}
+        </tbody>
+      </table>
+    </section>
+  </main>
+</Layout>

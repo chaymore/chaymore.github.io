@@ -1,0 +1,43 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Nav from '../components/Nav.astro';
+import { site } from '../data/site';
+---
+
+<Layout title={`${site.name} | Contact`}>
+  <Nav />
+
+  <main class="site-shell pt-28 pb-24 flex flex-col gap-8">
+    <header class="flex flex-col gap-3 pb-4">
+      <p class="text-xs uppercase tracking-[0.22em] text-zinc-500">caleb@portfolio:~$ whois caleb</p>
+      <h1 class="text-4xl font-bold text-zinc-100">Contact</h1>
+      <p class="text-zinc-400 max-w-2xl">
+        A simple page for reaching out and finding the right place to connect.
+      </p>
+      <div class="ascii-rule" aria-hidden="true"></div>
+    </header>
+
+    <section class="ascii-panel p-6 flex flex-col gap-5 text-zinc-300 leading-relaxed max-w-3xl" data-title="routing-table">
+      <p>
+        The best way to reach me is by email at{' '}
+        <a href={`mailto:${site.email}`} class="ascii-link">
+          {site.email}
+        </a>.
+      </p>
+      <pre class="ascii-pre text-zinc-500">{`+-----------+---------------------------+
+| channel   | route                     |
++-----------+---------------------------+
+| email     | primary                   |
+| github    | code / experiments        |
+| linkedin  | professional context      |
++-----------+---------------------------+`}</pre>
+      <div class="flex flex-wrap gap-4 text-sm text-zinc-400">
+        {site.socialLinks.map((link) => (
+          <a href={link.href} target="_blank" rel="noopener noreferrer" class="ascii-link">
+            [{link.label}]
+          </a>
+        ))}
+      </div>
+    </section>
+  </main>
+</Layout>

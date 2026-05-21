@@ -1,0 +1,31 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Nav from '../components/Nav.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import { projects, site } from '../data/site';
+---
+
+<Layout title={`${site.name} | Projects`}>
+  <Nav />
+
+  <main class="site-shell pt-28 pb-24 flex flex-col gap-8">
+    <header class="flex flex-col gap-3 pb-4">
+      <p class="text-xs uppercase tracking-[0.22em] text-zinc-500">caleb@portfolio:~$ ls projects/</p>
+      <h1 class="text-4xl font-bold text-zinc-100">Projects</h1>
+      <p class="text-zinc-400 max-w-2xl">
+        Technical work, experiments, and systems collected on their own page.
+      </p>
+      <div class="ascii-rule" aria-hidden="true"></div>
+    </header>
+
+    {projects.length > 0 ? (
+      <section class="flex flex-col gap-4">
+        {projects.map((project) => (
+          <ProjectCard {...project} />
+        ))}
+      </section>
+    ) : (
+      <p class="text-sm text-zinc-500">More coming soon.</p>
+    )}
+  </main>
+</Layout>

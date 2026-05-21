@@ -1,0 +1,97 @@
+<section class="three-body-section">
+  <div class="three-body-header">
+    <p class="three-body-label">[simulation]</p>
+    <h2 class="three-body-title">Three bodies, one unstable archive.</h2>
+    <p class="three-body-copy">
+      A small ASCII study in motion: finance, law, and systems thinking orbiting the same center
+      without settling into one clean line.
+    </p>
+  </div>
+
+  <div class="three-body-frame" data-title="orbital-map">
+    <pre id="three-body-ascii" class="three-body-ascii" aria-label="Animated ASCII three body simulation"></pre>
+    <div class="three-body-overlay" aria-hidden="true">
+      <span>timestep: live / medium: ascii</span>
+    </div>
+  </div>
+</section>
+
+<script>
+  const output = document.getElementById('three-body-ascii');
+
+  if (output instanceof HTMLPreElement) {
+    const cols = 74;
+    const rows = 26;
+    const chars = ['.', ':', '*'];
+    const labels = ['FIN', 'LAW', 'SYS'];
+    const trails = [[], [], []];
+
+    const plot = (grid, x, y, value) => {
+      const ix = Math.round(x);
+      const iy = Math.round(y);
+
+      if (ix >= 0 && ix < cols && iy >= 0 && iy < rows) {
+        grid[iy][ix] = value;
+      }
+    };
+
+    const draw = (time) => {
+      const grid = Array.from({ length: rows }, () => Array.from({ length: cols }, () => ' '));
+
+      for (let x = 0; x < cols; x += 6) {
+        for (let y = 0; y < rows; y += 3) {
+          grid[y][x] = '.';
+        }
+      }
+
+      const cx = cols / 2 + Math.sin(time * 0.00021) * 3;
+      const cy = rows / 2 + Math.cos(time * 0.00017) * 1.4;
+
+      plot(grid, cx, cy, '+');
+
+      const positions = [0, 1, 2].map((index) => {
+        const a = time * (0.00072 + index * 0.00008) + index * 2.08;
+        const b = time * (0.00039 + index * 0.00004) + index * 1.41;
+        const x = cx + Math.cos(a) * (15 + index * 2.8) + Math.sin(b) * 7;
+        const y = cy + Math.sin(a * 1.11) * (5.1 + index * 0.6) + Math.cos(b * 1.27) * 2.2;
+
+        trails[index].push({ x, y });
+        while (trails[index].length > 24) trails[index].shift();
+
+        return { x, y };
+      });
+
+      trails.forEach((trail, index) => {
+        trail.forEach((point, pointIndex) => {
+          const mark = pointIndex > trail.length - 7 ? chars[index] : '.';
+          plot(grid, point.x, point.y, mark);
+        });
+      });
+
+      positions.forEach((point, index) => {
+        const label = labels[index];
+        const x = Math.round(point.x);
+        const y = Math.round(point.y);
+
+        for (let i = 0; i < label.length; i += 1) {
+          plot(grid, x + i - 1, y, label[i]);
+        }
+      });
+
+      const frame = [
+        '+------------------------------------------------------------------------+',
+        '|  ASCII N-BODY SKETCH       gravity: qualitative       palette: 1-bit   |',
+        '+------------------------------------------------------------------------+',
+        ...grid.map((row) => `|${row.join('')}|`),
+        '+------------------------------------------------------------------------+',
+        '|  legend: FIN = capital flows  LAW = institutions  SYS = feedback loops |',
+        '+------------------------------------------------------------------------+',
+      ];
+
+      output.textContent = frame.join('\n');
+      requestAnimationFrame(draw);
+    };
+
+    requestAnimationFrame(draw);
+  }
+</script>

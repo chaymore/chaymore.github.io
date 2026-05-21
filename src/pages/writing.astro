@@ -1,0 +1,37 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Nav from '../components/Nav.astro';
+import { essays, site } from '../data/site';
+---
+
+<Layout title={`${site.name} | Writing`}>
+  <Nav />
+
+  <main class="site-shell pt-28 pb-24 flex flex-col gap-8">
+    <header class="flex flex-col gap-3 pb-4">
+      <p class="text-xs uppercase tracking-[0.22em] text-zinc-500">caleb@portfolio:~$ open notebook/</p>
+      <h1 class="text-4xl font-bold text-zinc-100">Writing</h1>
+      <p class="text-zinc-400 max-w-2xl">
+        Essays and notes on technology, institutions, and the ideas shaping the future.
+      </p>
+      <div class="ascii-rule" aria-hidden="true"></div>
+    </header>
+
+    <section class="ascii-panel p-5" data-title="notebook">
+      {essays.map((essay) => (
+        <article class="py-5 flex items-start justify-between gap-6 border-b border-dashed border-zinc-700 last:border-b-0 group">
+          <div class="flex flex-col gap-1">
+            <h2 class="font-bold text-zinc-100 group-hover:text-white transition-colors"># {essay.title}</h2>
+            <p class="text-sm text-zinc-400 leading-relaxed">{essay.summary}</p>
+          </div>
+          <div class="flex items-center gap-4 shrink-0 text-sm text-zinc-500 pt-0.5">
+            <span>{essay.date}</span>
+            {essay.href && (
+              <a href={essay.href} class="ascii-link">[read]</a>
+            )}
+          </div>
+        </article>
+      ))}
+    </section>
+  </main>
+</Layout>

@@ -1,177 +1,106 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Nav from '../components/Nav.astro';
-import ProjectCard from '../components/ProjectCard.astro';
+import ThreeBodySimulation from '../components/ThreeBodySimulation.astro';
+import { competitions, essays, pageLinks, projects, research, site } from '../data/site';
 
-// Add your tech projects here when ready
-const projects: {
-  title: string;
-  description: string;
-  tags: string[];
-  repo?: string;
-  href?: string;
-}[] = [];
-
-const competitions = [
+const highlights = [
   {
-    name: 'Marriott Case Competition',
-    description: 'Add a description of the case, your role, and outcomes here.',
-    year: '2025',
-    placement: '1st Place', // e.g. '1st Place' — leave empty if you'd rather not show it
+    title: 'Competitions',
+    description: 'Case work, pressure-tested thinking, and competitive problem solving.',
+    href: '/competitions',
+    count: `${competitions.length} entries`,
   },
   {
-    name: 'Ballard Center Case Competition',
-    description: 'Add a description of the case, your role, and outcomes here.',
-    year: '2025',
-    placement: '3rd Place',
+    title: 'Research',
+    description: 'Questions, papers, and longer-form investigation.',
+    href: '/research',
+    count: `${research.length} item`,
   },
   {
-    name: 'Global Business Center Case Competition',
-    description: 'Add a description of the case, your role, and outcomes here.',
-    year: '2026',
-    placement: '',
+    title: 'Writing',
+    description: 'Essays and notes on technology, institutions, and the future.',
+    href: '/writing',
+    count: `${essays.length} post`,
   },
-];
-
-// Add your research papers here
-const research: {
-  title: string;
-  abstract: string;
-  href?: string; // link to PDF or published paper
-}[] = [
   {
-    title: 'Paper Title',
-    abstract: 'Add a brief abstract or summary of your research here.',
-    // href: '/papers/my-paper.pdf',
-  },
-];
-
-// Add your tech essays here
-const essays: {
-  title: string;
-  date: string;
-  summary: string;
-  href?: string;
-}[] = [
-  {
-    title: 'Essay Title',
-    date: 'Month Year',
-    summary: 'Add a one or two sentence summary of the essay here.',
-    // href: '/essays/my-essay',
+    title: 'Projects',
+    description: 'Technical work, experiments, and systems I am building.',
+    href: '/projects',
+    count: projects.length > 0 ? `${projects.length} project` : 'In progress',
   },
 ];
 ---
 
-<Layout>
+<Layout title={`${site.name} | Home`}>
   <Nav />
 
-  <main class="max-w-4xl mx-auto px-6 pt-28 pb-24 flex flex-col gap-28">
-
-    <!-- Hero / About -->
-    <section id="about" class="flex flex-col gap-6">
-      <div class="flex flex-col gap-2">
-        <h1 class="text-4xl font-bold tracking-tight text-zinc-100">Caleb Haymore</h1>
-        <p class="text-zinc-400 text-lg">Building the Future.</p>
-      </div>
-      <p class="text-zinc-300 leading-relaxed max-w-2xl">
-        Finance student at BYU interested in the touchpoint between finance and law.
-        Find me on the tennis court or reading a sci-fi novel.
-      </p>
-      <div class="flex gap-4 text-sm">
-        <a href="https://github.com/calebhaymore" target="_blank" rel="noopener noreferrer"
-           class="text-zinc-400 hover:text-zinc-100 transition-colors">GitHub</a>
-        <a href="https://www.linkedin.com/in/caleb-haymore/" target="_blank" rel="noopener noreferrer"
-           class="text-zinc-400 hover:text-zinc-100 transition-colors">LinkedIn</a>
-        <a href="https://www.instagram.com/caleb_haymore/" target="_blank" rel="noopener noreferrer"
-           class="text-zinc-400 hover:text-zinc-100 transition-colors">Instagram</a>
-      </div>
-    </section>
-
-    <!-- Case Competitions -->
-    <section id="competitions" class="flex flex-col gap-6">
-      <h2 class="text-xl font-semibold text-zinc-100">Case Competitions</h2>
-      <div class="flex flex-col gap-4">
-        {competitions.map(comp => (
-          <div class="border border-zinc-800 rounded-lg p-5 flex flex-col gap-2 hover:border-zinc-600 transition-colors">
-            <div class="flex items-center justify-between gap-4">
-              <h3 class="font-semibold text-zinc-100">{comp.name}</h3>
-              <div class="flex items-center gap-3 shrink-0 text-sm text-zinc-500">
-                {comp.placement && <span class="text-amber-400 font-medium">{comp.placement}</span>}
-                <span>{comp.year}</span>
-              </div>
-            </div>
-            <p class="text-sm text-zinc-400 leading-relaxed">{comp.description}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-
-    <!-- Research -->
-    <section id="research" class="flex flex-col gap-6">
-      <h2 class="text-xl font-semibold text-zinc-100">Research</h2>
-      <div class="flex flex-col gap-4">
-        {research.map(paper => (
-          <div class="border border-zinc-800 rounded-lg p-5 flex flex-col gap-2 hover:border-zinc-600 transition-colors">
-            <div class="flex items-start justify-between gap-4">
-              <h3 class="font-semibold text-zinc-100">{paper.title}</h3>
-              {paper.href && (
-                <a href={paper.href} class="text-sm text-zinc-400 hover:text-zinc-100 transition-colors shrink-0">
-                  Read →
-                </a>
-              )}
-            </div>
-            <p class="text-sm text-zinc-400 leading-relaxed">{paper.abstract}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-
-    <!-- Essays -->
-    <section id="essays" class="flex flex-col gap-6">
-      <h2 class="text-xl font-semibold text-zinc-100">Essays on Tech</h2>
-      <div class="flex flex-col divide-y divide-zinc-800">
-        {essays.map(essay => (
-          <div class="py-4 flex items-start justify-between gap-6 group">
-            <div class="flex flex-col gap-1">
-              <h3 class="font-medium text-zinc-100 group-hover:text-white transition-colors">{essay.title}</h3>
-              <p class="text-sm text-zinc-400">{essay.summary}</p>
-            </div>
-            <div class="flex items-center gap-4 shrink-0 text-sm text-zinc-500 pt-0.5">
-              <span>{essay.date}</span>
-              {essay.href && (
-                <a href={essay.href} class="text-zinc-400 hover:text-zinc-100 transition-colors">Read →</a>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-
-    <!-- Projects -->
-    <section id="projects" class="flex flex-col gap-6">
-      <h2 class="text-xl font-semibold text-zinc-100">Projects</h2>
-      {projects.length > 0 ? (
-        <div class="flex flex-col gap-4">
-          {projects.map(project => (
-            <ProjectCard {...project} />
+  <main class="site-shell pt-28 pb-24 flex flex-col gap-16">
+    <section class="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] items-start">
+      <div class="flex flex-col gap-6">
+        <div class="text-xs uppercase tracking-[0.22em] text-zinc-500">caleb@portfolio:~$ ./home</div>
+        <div class="ascii-title">
+          <span>Caleb</span><br />
+          <span>Haymore</span>
+        </div>
+        <div class="ascii-rule" aria-hidden="true"></div>
+        <p class="text-zinc-200 text-xl max-w-2xl">{site.tagline}</p>
+        <p class="text-zinc-300 leading-relaxed max-w-2xl">{site.intro}</p>
+        <div class="flex flex-wrap gap-3 text-sm text-zinc-300">
+          {site.socialLinks.map((link) => (
+            <a href={link.href} target="_blank" rel="noopener noreferrer" class="ascii-link">
+              [{link.label}]
+            </a>
           ))}
         </div>
-      ) : (
-        <p class="text-sm text-zinc-500">More coming soon.</p>
-      )}
+      </div>
+
+      <div class="ascii-panel p-5" data-title="system-status">
+        <pre class="ascii-pre">{`+------------------------------+
+| CURRENT VECTOR               |
++------------------------------+
+| finance      [########..]    |
+| law          [#######...]    |
+| systems      [#########.]    |
+| tennis       [#####.....]    |
+| sci-fi       [########..]    |
++------------------------------+
+| mode: inquiry / build / write |
++------------------------------+`}</pre>
+      </div>
     </section>
 
-    <!-- Contact -->
-    <section id="contact" class="flex flex-col gap-4">
-      <h2 class="text-xl font-semibold text-zinc-100">Contact</h2>
-      <p class="text-zinc-400 leading-relaxed max-w-xl">
-        The best way to reach me is by email at{' '}
-        <a href="mailto:you@example.com" class="text-zinc-100 hover:underline">you@example.com</a>.
-        I'm also active on{' '}
-        <a href="https://github.com/calebhaymore" target="_blank" rel="noopener noreferrer"
-           class="text-zinc-100 hover:underline">GitHub</a>.
-      </p>
+    <ThreeBodySimulation />
+
+    <section class="flex flex-col gap-6">
+      <div class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p class="text-xs uppercase tracking-[0.22em] text-zinc-500">index</p>
+          <h2 class="text-2xl font-bold text-zinc-100">Selected Areas</h2>
+        </div>
+        <a href="/about" class="text-sm ascii-link">[more-about-me]</a>
+      </div>
+
+      <div class="grid gap-4 md:grid-cols-2">
+        {highlights.map((item) => (
+          <a href={item.href} class="ascii-panel p-5 flex flex-col gap-3 hover:border-zinc-400 transition-colors" data-title={item.count}>
+            <div class="flex items-center justify-between gap-4">
+              <h3 class="font-bold text-zinc-100">./{item.title.toLowerCase()}</h3>
+              <span class="text-zinc-500" aria-hidden="true">-&gt;</span>
+            </div>
+            <p class="text-sm text-zinc-400 leading-relaxed">{item.description}</p>
+          </a>
+        ))}
+      </div>
     </section>
 
+    <section class="ascii-panel p-5 flex flex-col gap-4" data-title="site-map">
+      <h2 class="text-xl font-bold text-zinc-100">Filesystem</h2>
+      <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4 text-sm text-zinc-400">
+        {pageLinks.map((link) => (
+          <a href={link.href} class="ascii-link">/{link.label.toLowerCase()}</a>
+        ))}
+      </div>
+    </section>
   </main>
 </Layout>
