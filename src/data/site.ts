@@ -5,7 +5,7 @@ export const site = {
     'Finance student at BYU interested in the touchpoint between finance and law. Find me on the tennis court or reading a sci-fi novel.',
   email: 'you@example.com',
   socialLinks: [
-    { label: 'GitHub', href: 'https://github.com/calebhaymore' },
+    { label: 'GitHub', href: 'https://github.com/chaymore' },
     { label: 'LinkedIn', href: 'https://www.linkedin.com/in/caleb-haymore/' },
     { label: 'Instagram', href: 'https://www.instagram.com/caleb_haymore/' },
   ],
