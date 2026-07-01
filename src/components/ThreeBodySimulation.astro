@@ -4,38 +4,172 @@
     <h2 class="three-body-title">Three bodies, one unstable archive.</h2>
     <p class="three-body-copy">
       A small ASCII study in motion: finance, law, and systems thinking orbiting the same center
-      without settling into one clean line.
+      without settling into one clean line. Your cursor has mass here — drag it through the field,
+      or click to perturb the system.
     </p>
   </div>
 
-  <div class="three-body-frame" data-title="orbital-map">
+  <div id="three-body-frame" class="three-body-frame" data-title="orbital-map">
     <pre id="three-body-ascii" class="three-body-ascii" aria-label="Animated ASCII three body simulation"></pre>
     <div class="three-body-overlay" aria-hidden="true">
-      <span>timestep: live / medium: ascii</span>
+      <span id="three-body-status">timestep: live / gravity: yours</span>
     </div>
   </div>
 </section>
 
 <script>
   const output = document.getElementById('three-body-ascii');
+  const frameEl = document.getElementById('three-body-frame');
+  const statusEl = document.getElementById('three-body-status');
 
-  if (output instanceof HTMLPreElement) {
+  if (output instanceof HTMLPreElement && frameEl instanceof HTMLDivElement) {
     const cols = 74;
     const rows = 26;
+    // Monospace cells are ~1.9x taller than wide; simulate in square space
+    // and divide y by ASPECT when plotting so orbits render round.
+    const ASPECT = 1.9;
+    const W = cols;
+    const H = rows * ASPECT;
+    const center = { x: W / 2, y: H / 2 };
+
     const chars = ['.', ':', '*'];
     const labels = ['FIN', 'LAW', 'SYS'];
-    const trails = [[], [], []];
 
-    const plot = (grid, x, y, value) => {
+    const G = 320;
+    const SOFT2 = 22; // gravity softening, keeps close encounters finite
+    const SPRING_R = 17; // beyond this radius, pull back toward center
+    const SPRING_K = 0.9;
+    const VMAX = 15;
+    const MOUSE_G = 900;
+
+    const bodies = [0, 1, 2].map((i) => {
+      const angle = (i * 2 * Math.PI) / 3;
+      const r = 13;
+      return {
+        x: center.x + Math.cos(angle) * r,
+        y: center.y + Math.sin(angle) * r,
+        vx: -Math.sin(angle) * 5.6,
+        vy: Math.cos(angle) * 5.6,
+        trail: [] as { x: number; y: number }[],
+      };
+    });
+
+    const mouse = { x: 0, y: 0, active: false };
+    let statusTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const flashStatus = (text: string) => {
+      if (!statusEl) return;
+      clearTimeout(statusTimer);
+      statusEl.textContent = text;
+      statusTimer = setTimeout(() => {
+        statusEl.textContent = 'timestep: live / gravity: yours';
+      }, 2000);
+    };
+
+    const toWorld = (event: { clientX: number; clientY: number }) => {
+      const rect = frameEl.getBoundingClientRect();
+      return {
+        x: ((event.clientX - rect.left) / rect.width) * W,
+        y: ((event.clientY - rect.top) / rect.height) * H,
+      };
+    };
+
+    frameEl.addEventListener('mousemove', (event) => {
+      const point = toWorld(event);
+      mouse.x = point.x;
+      mouse.y = point.y;
+      mouse.active = true;
+    });
+
+    frameEl.addEventListener('mouseleave', () => {
+      mouse.active = false;
+    });
+
+    frameEl.addEventListener('click', (event) => {
+      const point = toWorld(event);
+      bodies.forEach((body) => {
+        const dx = body.x - point.x;
+        const dy = body.y - point.y;
+        const dist = Math.hypot(dx, dy) + 4;
+        body.vx += (dx / dist) * (90 / dist);
+        body.vy += (dy / dist) * (90 / dist);
+      });
+      flashStatus('+perturbation injected');
+    });
+
+    frameEl.addEventListener(
+      'touchmove',
+      (event) => {
+        const touch = event.touches[0];
+        if (!touch) return;
+        const point = toWorld(touch);
+        mouse.x = point.x;
+        mouse.y = point.y;
+        mouse.active = true;
+      },
+      { passive: true },
+    );
+
+    frameEl.addEventListener('touchend', () => {
+      mouse.active = false;
+    });
+
+    const step = (h: number) => {
+      const acc = bodies.map(() => ({ x: 0, y: 0 }));
+
+      for (let i = 0; i < bodies.length; i += 1) {
+        for (let j = i + 1; j < bodies.length; j += 1) {
+          const dx = bodies[j].x - bodies[i].x;
+          const dy = bodies[j].y - bodies[i].y;
+          const d2 = dx * dx + dy * dy + SOFT2;
+          const inv = G / (d2 * Math.sqrt(d2));
+          acc[i].x += dx * inv;
+          acc[i].y += dy * inv;
+          acc[j].x -= dx * inv;
+          acc[j].y -= dy * inv;
+        }
+
+        const cdx = bodies[i].x - center.x;
+        const cdy = bodies[i].y - center.y;
+        const cd = Math.hypot(cdx, cdy);
+        if (cd > SPRING_R) {
+          const pull = (SPRING_K * (cd - SPRING_R)) / cd;
+          acc[i].x -= cdx * pull;
+          acc[i].y -= cdy * pull;
+        }
+
+        if (mouse.active) {
+          const mdx = mouse.x - bodies[i].x;
+          const mdy = mouse.y - bodies[i].y;
+          const md2 = mdx * mdx + mdy * mdy + SOFT2 * 2;
+          const minv = MOUSE_G / (md2 * Math.sqrt(md2));
+          acc[i].x += mdx * minv;
+          acc[i].y += mdy * minv;
+        }
+      }
+
+      bodies.forEach((body, i) => {
+        body.vx += acc[i].x * h;
+        body.vy += acc[i].y * h;
+        const speed = Math.hypot(body.vx, body.vy);
+        if (speed > VMAX) {
+          body.vx = (body.vx / speed) * VMAX;
+          body.vy = (body.vy / speed) * VMAX;
+        }
+        body.x += body.vx * h;
+        body.y += body.vy * h;
+      });
+    };
+
+    const plot = (grid: string[][], x: number, y: number, value: string) => {
       const ix = Math.round(x);
-      const iy = Math.round(y);
-
+      const iy = Math.round(y / ASPECT);
       if (ix >= 0 && ix < cols && iy >= 0 && iy < rows) {
         grid[iy][ix] = value;
       }
     };
 
-    const draw = (time) => {
+    const render = () => {
       const grid = Array.from({ length: rows }, () => Array.from({ length: cols }, () => ' '));
 
       for (let x = 0; x < cols; x += 6) {
@@ -44,43 +178,36 @@
         }
       }
 
-      const cx = cols / 2 + Math.sin(time * 0.00021) * 3;
-      const cy = rows / 2 + Math.cos(time * 0.00017) * 1.4;
+      plot(grid, center.x, center.y, '+');
 
-      plot(grid, cx, cy, '+');
+      if (mouse.active) {
+        plot(grid, mouse.x, mouse.y, 'x');
+      }
 
-      const positions = [0, 1, 2].map((index) => {
-        const a = time * (0.00072 + index * 0.00008) + index * 2.08;
-        const b = time * (0.00039 + index * 0.00004) + index * 1.41;
-        const x = cx + Math.cos(a) * (15 + index * 2.8) + Math.sin(b) * 7;
-        const y = cy + Math.sin(a * 1.11) * (5.1 + index * 0.6) + Math.cos(b * 1.27) * 2.2;
+      bodies.forEach((body, index) => {
+        body.trail.push({ x: body.x, y: body.y });
+        while (body.trail.length > 26) body.trail.shift();
 
-        trails[index].push({ x, y });
-        while (trails[index].length > 24) trails[index].shift();
-
-        return { x, y };
-      });
-
-      trails.forEach((trail, index) => {
-        trail.forEach((point, pointIndex) => {
-          const mark = pointIndex > trail.length - 7 ? chars[index] : '.';
+        body.trail.forEach((point, pointIndex) => {
+          const mark = pointIndex > body.trail.length - 7 ? chars[index] : '.';
           plot(grid, point.x, point.y, mark);
         });
       });
 
-      positions.forEach((point, index) => {
+      bodies.forEach((body, index) => {
         const label = labels[index];
-        const x = Math.round(point.x);
-        const y = Math.round(point.y);
-
+        const ix = Math.round(body.x);
+        const iy = Math.round(body.y / ASPECT);
         for (let i = 0; i < label.length; i += 1) {
-          plot(grid, x + i - 1, y, label[i]);
+          if (ix + i - 1 >= 0 && ix + i - 1 < cols && iy >= 0 && iy < rows) {
+            grid[iy][ix + i - 1] = label[i];
+          }
         }
       });
 
       const frame = [
         '+------------------------------------------------------------------------+',
-        '|  ASCII N-BODY SKETCH       gravity: qualitative       palette: 1-bit   |',
+        '|  ASCII N-BODY SIM          gravity: newtonian         palette: 1-bit   |',
         '+------------------------------------------------------------------------+',
         ...grid.map((row) => `|${row.join('')}|`),
         '+------------------------------------------------------------------------+',
@@ -89,9 +216,26 @@
       ];
 
       output.textContent = frame.join('\n');
-      requestAnimationFrame(draw);
     };
 
-    requestAnimationFrame(draw);
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let visible = true;
+
+    new IntersectionObserver((entries) => {
+      visible = entries[0]?.isIntersecting ?? true;
+    }).observe(frameEl);
+
+    if (reduceMotion) {
+      render();
+    } else {
+      const loop = () => {
+        if (visible) {
+          for (let s = 0; s < 4; s += 1) step(0.008);
+          render();
+        }
+        requestAnimationFrame(loop);
+      };
+      requestAnimationFrame(loop);
+    }
   }
 </script>

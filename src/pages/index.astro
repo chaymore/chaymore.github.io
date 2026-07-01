@@ -4,30 +4,32 @@ import Nav from '../components/Nav.astro';
 import ThreeBodySimulation from '../components/ThreeBodySimulation.astro';
 import { competitions, essays, pageLinks, projects, research, site } from '../data/site';
 
+const count = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
+
 const highlights = [
   {
     title: 'Competitions',
     description: 'Case work, pressure-tested thinking, and competitive problem solving.',
     href: '/competitions',
-    count: `${competitions.length} entries`,
+    count: count(competitions.length, 'entry').replace('entrys', 'entries'),
   },
   {
     title: 'Research',
     description: 'Questions, papers, and longer-form investigation.',
     href: '/research',
-    count: `${research.length} item`,
+    count: count(research.length, 'item'),
   },
   {
     title: 'Writing',
     description: 'Essays and notes on technology, institutions, and the future.',
     href: '/writing',
-    count: `${essays.length} post`,
+    count: count(essays.length, 'post'),
   },
   {
     title: 'Projects',
     description: 'Technical work, experiments, and systems I am building.',
     href: '/projects',
-    count: projects.length > 0 ? `${projects.length} project` : 'In progress',
+    count: projects.length > 0 ? count(projects.length, 'project') : 'In progress',
   },
 ];
 ---
@@ -38,15 +40,15 @@ const highlights = [
   <main class="site-shell pt-28 pb-24 flex flex-col gap-16">
     <section class="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] items-start">
       <div class="flex flex-col gap-6">
-        <div class="text-xs uppercase tracking-[0.22em] text-zinc-500">caleb@portfolio:~$ ./home</div>
-        <div class="ascii-title">
-          <span>Caleb</span><br />
-          <span>Haymore</span>
+        <div class="type-line text-xs uppercase tracking-[0.22em] text-zinc-500">caleb@portfolio:~$ ./home</div>
+        <div class="ascii-title reveal" style="--d: 0.05s">
+          <span id="title-first" data-text="Caleb">Caleb</span><br />
+          <span id="title-last" data-text="Haymore">Haymore</span>
         </div>
-        <div class="ascii-rule" aria-hidden="true"></div>
-        <p class="text-zinc-200 text-xl max-w-2xl">{site.tagline}</p>
-        <p class="text-zinc-300 leading-relaxed max-w-2xl">{site.intro}</p>
-        <div class="flex flex-wrap gap-3 text-sm text-zinc-300">
+        <div class="ascii-rule reveal" style="--d: 0.15s" aria-hidden="true"></div>
+        <p class="reveal text-zinc-200 text-xl max-w-2xl" style="--d: 0.2s">{site.tagline}</p>
+        <p class="reveal text-zinc-300 leading-relaxed max-w-2xl" style="--d: 0.28s">{site.intro}</p>
+        <div class="reveal flex flex-wrap gap-3 text-sm text-zinc-300" style="--d: 0.36s">
           {site.socialLinks.map((link) => (
             <a href={link.href} target="_blank" rel="noopener noreferrer" class="ascii-link">
               [{link.label}]
@@ -55,17 +57,19 @@ const highlights = [
         </div>
       </div>
 
-      <div class="ascii-panel p-5" data-title="system-status">
-        <pre class="ascii-pre">{`+------------------------------+
+      <div class="ascii-panel p-5 reveal" style="--d: 0.3s" data-title="system-status">
+        <pre id="status-panel" class="ascii-pre">{`+------------------------------+
 | CURRENT VECTOR               |
 +------------------------------+
-| finance      [########..]    |
-| law          [#######...]    |
-| systems      [#########.]    |
-| tennis       [#####.....]    |
-| sci-fi       [########..]    |
+| finance   [##########..]     |
+| law       [########....]     |
+| systems   [###########.]     |
+| mandarin  [#########...]     |
+| tennis    [#######.....]     |
+| sci-fi    [##########..]     |
 +------------------------------+
-| mode: inquiry / build / write |
+| mode: inquiry / build / write|
+| clock: --:--:--   up: ----s  |
 +------------------------------+`}</pre>
       </div>
     </section>
@@ -101,6 +105,108 @@ const highlights = [
           <a href={link.href} class="ascii-link">/{link.label.toLowerCase()}</a>
         ))}
       </div>
+      <p class="text-xs text-zinc-700 select-none">psst — press ` anywhere for a shell.</p>
     </section>
   </main>
 </Layout>
+
+<script>
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------------------------------------------------------------- */
+  /* name scramble-decode                                              */
+  /* ---------------------------------------------------------------- */
+
+  const GLYPHS = '#@$%&*+=/\\|<>?~^;';
+
+  const scramble = (el: HTMLElement) => {
+    const text = el.dataset.text ?? el.textContent ?? '';
+    let frame = 0;
+    const total = text.length * 3 + 6;
+
+    const timer = setInterval(() => {
+      frame += 1;
+      const settled = Math.floor(frame / 3);
+      el.textContent =
+        text.slice(0, settled) +
+        text
+          .slice(settled)
+          .split('')
+          .map(() => GLYPHS[Math.floor(Math.random() * GLYPHS.length)])
+          .join('');
+      if (frame >= total) {
+        clearInterval(timer);
+        el.textContent = text;
+      }
+    }, 42);
+  };
+
+  if (!reduceMotion) {
+    ['title-first', 'title-last'].forEach((id, index) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      setTimeout(() => scramble(el), 150 + index * 260);
+      el.addEventListener('mouseenter', () => scramble(el));
+    });
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* live system-status panel                                          */
+  /* ---------------------------------------------------------------- */
+
+  const panel = document.getElementById('status-panel');
+
+  if (panel) {
+    const INNER = 30;
+    const BAR_WIDTH = 12;
+    const bars = [
+      { name: 'finance', level: 10 },
+      { name: 'law', level: 8 },
+      { name: 'systems', level: 11 },
+      { name: 'mandarin', level: 9 },
+      { name: 'tennis', level: 7 },
+      { name: 'sci-fi', level: 10 },
+    ];
+
+    const border = `+${'-'.repeat(INNER)}+`;
+    const row = (text: string) => `|${text.padEnd(INNER).slice(0, INNER)}|`;
+    const start = Date.now();
+
+    const renderPanel = (progress: number) => {
+      const elapsed = Math.floor((Date.now() - start) / 1000);
+      const clock = new Date().toLocaleTimeString('en-US', { hour12: false });
+
+      const lines = [
+        border,
+        row(' CURRENT VECTOR'),
+        border,
+        ...bars.map((bar, i) => {
+          const barProgress = Math.max(0, Math.min(1, progress * bars.length - i * 0.55));
+          const filled = Math.round(bar.level * barProgress);
+          return row(` ${bar.name.padEnd(10)}[${'#'.repeat(filled)}${'.'.repeat(BAR_WIDTH - filled)}]`);
+        }),
+        border,
+        row(' mode: inquiry / build / write'),
+        row(` clock: ${clock}   up: ${String(elapsed).padStart(4, '0')}s`),
+        border,
+      ];
+
+      panel.textContent = lines.join('\n');
+    };
+
+    if (reduceMotion) {
+      renderPanel(1);
+      setInterval(() => renderPanel(1), 1000);
+    } else {
+      let progress = 0;
+      const fill = setInterval(() => {
+        progress += 0.02;
+        renderPanel(progress);
+        if (progress >= 1.6) {
+          clearInterval(fill);
+          setInterval(() => renderPanel(1), 1000);
+        }
+      }, 30);
+    }
+  }
+</script>

@@ -1,0 +1,33 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Nav from '../components/Nav.astro';
+import { site } from '../data/site';
+---
+
+<Layout title={`${site.name} | 404`}>
+  <Nav />
+
+  <main class="site-shell pt-28 pb-24 flex flex-col gap-8 min-h-[70vh]">
+    <header class="flex flex-col gap-3 pb-4">
+      <p class="type-line text-xs uppercase tracking-[0.22em] text-zinc-500">caleb@portfolio:~$ cat {'{requested-page}'}</p>
+      <div class="ascii-rule" aria-hidden="true"></div>
+    </header>
+
+    <section class="ascii-panel p-6 flex flex-col gap-5 max-w-2xl reveal" data-title="error-log" style="--d: 0.1s">
+      <pre class="ascii-pre text-zinc-100">{` _  _    ___  _  _
+| || |  / _ \\| || |
+| || |_| | | | || |_
+|__   _| |_| |__   _|
+   |_|  \\___/   |_|`}</pre>
+      <p class="text-zinc-300">cat: requested-page: No such file or directory</p>
+      <p class="text-sm text-zinc-500 leading-relaxed">
+        Either this page never existed, or it drifted out of orbit. Chaotic systems do that.
+      </p>
+      <div class="flex flex-wrap gap-4 text-sm">
+        <a href="/" class="ascii-link">[go-home]</a>
+        <a href="/contact" class="ascii-link">[report-anomaly]</a>
+      </div>
+      <p class="text-xs text-zinc-700 select-none">or press ` and find your own way out.</p>
+    </section>
+  </main>
+</Layout>

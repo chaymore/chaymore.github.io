@@ -9,15 +9,15 @@ import { site } from '../data/site';
 
   <main class="site-shell pt-28 pb-24 flex flex-col gap-8">
     <header class="flex flex-col gap-3 pb-4">
-      <p class="text-xs uppercase tracking-[0.22em] text-zinc-500">caleb@portfolio:~$ whois caleb</p>
-      <h1 class="text-4xl font-bold text-zinc-100">Contact</h1>
-      <p class="text-zinc-400 max-w-2xl">
+      <p class="type-line text-xs uppercase tracking-[0.22em] text-zinc-500">caleb@portfolio:~$ whois caleb</p>
+      <h1 class="text-4xl font-bold text-zinc-100 reveal">Contact</h1>
+      <p class="text-zinc-400 max-w-2xl reveal" style="--d: 0.08s">
         A simple page for reaching out and finding the right place to connect.
       </p>
-      <div class="ascii-rule" aria-hidden="true"></div>
+      <div class="ascii-rule reveal" style="--d: 0.14s" aria-hidden="true"></div>
     </header>
 
-    <section class="ascii-panel p-6 flex flex-col gap-5 text-zinc-300 leading-relaxed max-w-3xl" data-title="routing-table">
+    <section class="ascii-panel p-6 flex flex-col gap-5 text-zinc-300 leading-relaxed max-w-3xl reveal" style="--d: 0.2s" data-title="routing-table">
       <p>
         The best way to reach me is by email at{' '}
         <a href={`mailto:${site.email}`} class="ascii-link">

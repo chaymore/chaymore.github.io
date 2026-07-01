@@ -1,11 +1,17 @@
 ---
 import '../styles/global.css'
+import Footer from '../components/Footer.astro';
+import GuestShell from '../components/GuestShell.astro';
 
 interface Props {
   title?: string;
+  description?: string;
 }
 
-const { title = 'Caleb Haymore' } = Astro.props;
+const {
+  title = 'Caleb Haymore',
+  description = 'Caleb Haymore — finance, law, and systems thinking. BYU finance student building at the touchpoint of capital, rules, and technology.',
+} = Astro.props;
 ---
 
 <html lang="en">
@@ -14,9 +20,35 @@ const { title = 'Caleb Haymore' } = Astro.props;
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
     <title>{title}</title>
   </head>
   <body class="bg-black text-zinc-100 min-h-screen font-mono antialiased">
     <slot />
+    <Footer />
+    <GuestShell />
+
+    <script>
+      // Typewriter effect for terminal prompt lines.
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      if (!reduceMotion) {
+        document.querySelectorAll<HTMLElement>('.type-line').forEach((el) => {
+          const full = el.textContent ?? '';
+          el.textContent = '';
+          el.classList.add('cursor-block');
+
+          let i = 0;
+          const timer = setInterval(() => {
+            i += 1;
+            el.textContent = full.slice(0, i);
+            if (i >= full.length) {
+              clearInterval(timer);
+              setTimeout(() => el.classList.remove('cursor-block'), 2200);
+            }
+          }, 26);
+        });
+      }
+    </script>
   </body>
 </html>

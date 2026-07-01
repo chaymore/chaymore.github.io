@@ -1,0 +1,33 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="site-shell pb-10 flex flex-col gap-3">
+  <div class="ascii-rule" aria-hidden="true"></div>
+  <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 text-xs text-zinc-600">
+    <span>EOF · caleb haymore · © {year}</span>
+    <span class="flex items-center gap-5">
+      <span id="footer-uptime" title="time on page">session 00:00</span>
+      <button id="footer-shell" type="button" class="ascii-link cursor-pointer">[open-shell&nbsp;`]</button>
+    </span>
+  </div>
+  <div class="konami-hint" title="you know what to do" aria-hidden="true">↑↑↓↓←→←→BA</div>
+</footer>
+
+<script>
+  const uptime = document.getElementById('footer-uptime');
+  const start = Date.now();
+
+  if (uptime) {
+    setInterval(() => {
+      const seconds = Math.floor((Date.now() - start) / 1000);
+      const mm = String(Math.floor(seconds / 60)).padStart(2, '0');
+      const ss = String(seconds % 60).padStart(2, '0');
+      uptime.textContent = `session ${mm}:${ss}`;
+    }, 1000);
+  }
+
+  document.getElementById('footer-shell')?.addEventListener('click', () => {
+    document.dispatchEvent(new CustomEvent('open-shell'));
+  });
+</script>

@@ -9,17 +9,17 @@ import { competitions, site } from '../data/site';
 
   <main class="site-shell pt-28 pb-24 flex flex-col gap-8">
     <header class="flex flex-col gap-3 pb-4">
-      <p class="text-xs uppercase tracking-[0.22em] text-zinc-500">caleb@portfolio:~$ tail competitions.log</p>
-      <h1 class="text-4xl font-bold text-zinc-100">Case Competitions</h1>
-      <p class="text-zinc-400 max-w-2xl">
+      <p class="type-line text-xs uppercase tracking-[0.22em] text-zinc-500">caleb@portfolio:~$ tail competitions.log</p>
+      <h1 class="text-4xl font-bold text-zinc-100 reveal">Case Competitions</h1>
+      <p class="text-zinc-400 max-w-2xl reveal" style="--d: 0.08s">
         A dedicated archive for competitive work, outcomes, and what each case required.
       </p>
-      <div class="ascii-rule" aria-hidden="true"></div>
+      <div class="ascii-rule reveal" style="--d: 0.14s" aria-hidden="true"></div>
     </header>
 
     <section class="grid gap-4">
-      {competitions.map((comp) => (
-        <article class="ascii-panel p-5 flex flex-col gap-3 hover:border-zinc-400 transition-colors" data-title={comp.year}>
+      {competitions.map((comp, index) => (
+        <article class="ascii-panel p-5 flex flex-col gap-3 hover:border-zinc-400 transition-colors reveal" style={`--d: ${0.2 + index * 0.08}s`} data-title={comp.year}>
           <div class="flex items-center justify-between gap-4">
             <h2 class="font-bold text-zinc-100">{comp.name}</h2>
             <div class="flex items-center gap-3 shrink-0 text-sm text-zinc-500">

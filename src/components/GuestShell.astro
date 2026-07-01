@@ -1,0 +1,419 @@
+<div id="shell-overlay" class="shell-overlay" hidden>
+  <div class="shell-panel ascii-panel" data-title="guest-shell" role="dialog" aria-label="Guest shell">
+    <div id="shell-out" class="shell-out" aria-live="polite"></div>
+    <div class="shell-line">
+      <span class="shell-prompt">guest@caleb:~$</span>
+      <input
+        id="shell-in"
+        class="shell-in"
+        type="text"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        aria-label="Shell command input"
+      />
+    </div>
+  </div>
+</div>
+
+<canvas id="matrix-canvas" class="matrix-canvas" aria-hidden="true"></canvas>
+<div id="phosphor-overlay" class="phosphor-overlay" hidden aria-hidden="true"></div>
+<div id="egg-toast" class="egg-toast" hidden aria-hidden="true"></div>
+
+<script>
+  import { pageLinks, projects, site } from '../data/site';
+
+  const overlay = document.getElementById('shell-overlay') as HTMLDivElement;
+  const out = document.getElementById('shell-out') as HTMLDivElement;
+  const input = document.getElementById('shell-in') as HTMLInputElement;
+  const matrixCanvas = document.getElementById('matrix-canvas') as HTMLCanvasElement;
+  const phosphor = document.getElementById('phosphor-overlay') as HTMLDivElement;
+  const toast = document.getElementById('egg-toast') as HTMLDivElement;
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------------------------------------------------------------- */
+  /* toast                                                             */
+  /* ---------------------------------------------------------------- */
+
+  let toastTimer: ReturnType<typeof setTimeout> | undefined;
+
+  const showToast = (message: string) => {
+    clearTimeout(toastTimer);
+    toast.textContent = message;
+    toast.hidden = false;
+    toast.classList.remove('egg-toast-out');
+    toastTimer = setTimeout(() => {
+      toast.classList.add('egg-toast-out');
+      toastTimer = setTimeout(() => {
+        toast.hidden = true;
+        toast.classList.remove('egg-toast-out');
+      }, 450);
+    }, 2200);
+  };
+
+  /* ---------------------------------------------------------------- */
+  /* phosphor mode (konami)                                            */
+  /* ---------------------------------------------------------------- */
+
+  const setPhosphor = (on: boolean, announce = true) => {
+    phosphor.hidden = !on;
+    try {
+      localStorage.setItem('phosphor', on ? '1' : '0');
+    } catch {
+      /* private mode */
+    }
+    if (announce) showToast(`phosphor mode [${on ? 'on' : 'off'}]`);
+  };
+
+  try {
+    if (localStorage.getItem('phosphor') === '1') setPhosphor(true, false);
+  } catch {
+    /* private mode */
+  }
+
+  const KONAMI = [
+    'ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown',
+    'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight',
+    'b', 'a',
+  ];
+  let konamiIndex = 0;
+
+  document.addEventListener('keydown', (event) => {
+    const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+    if (key === KONAMI[konamiIndex]) {
+      konamiIndex += 1;
+      if (konamiIndex === KONAMI.length) {
+        konamiIndex = 0;
+        setPhosphor(phosphor.hidden);
+      }
+    } else {
+      konamiIndex = key === KONAMI[0] ? 1 : 0;
+    }
+  });
+
+  /* ---------------------------------------------------------------- */
+  /* matrix rain                                                       */
+  /* ---------------------------------------------------------------- */
+
+  const MATRIX_GLYPHS = '未来金融法系统思考建造宇宙星辰科幻网球01$¥%#*+=';
+  let matrixTimer: ReturnType<typeof setInterval> | undefined;
+  let matrixStop: ReturnType<typeof setTimeout> | undefined;
+
+  const runMatrix = (duration = 9000) => {
+    if (reduceMotion) {
+      showToast('matrix declined: reduced motion is on');
+      return;
+    }
+    clearInterval(matrixTimer);
+    clearTimeout(matrixStop);
+
+    const ctx = matrixCanvas.getContext('2d');
+    if (!ctx) return;
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    matrixCanvas.width = window.innerWidth * dpr;
+    matrixCanvas.height = window.innerHeight * dpr;
+    ctx.scale(dpr, dpr);
+
+    const fontSize = 16;
+    const columns = Math.ceil(window.innerWidth / fontSize);
+    const drops = Array.from({ length: columns }, () => Math.random() * -40);
+
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+    matrixCanvas.style.opacity = '1';
+
+    matrixTimer = setInterval(() => {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.09)';
+      ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+      ctx.font = `${fontSize}px monospace`;
+
+      for (let i = 0; i < columns; i += 1) {
+        const glyph = MATRIX_GLYPHS[Math.floor(Math.random() * MATRIX_GLYPHS.length)];
+        const x = i * fontSize;
+        const y = drops[i] * fontSize;
+
+        ctx.fillStyle = 'rgba(244, 244, 245, 0.92)';
+        ctx.fillText(glyph, x, y);
+        ctx.fillStyle = 'rgba(161, 161, 170, 0.45)';
+        ctx.fillText(
+          MATRIX_GLYPHS[Math.floor(Math.random() * MATRIX_GLYPHS.length)],
+          x,
+          y - fontSize,
+        );
+
+        drops[i] += 1;
+        if (y > window.innerHeight && Math.random() > 0.975) drops[i] = 0;
+      }
+    }, 50);
+
+    matrixStop = setTimeout(() => {
+      matrixCanvas.style.opacity = '0';
+      setTimeout(() => clearInterval(matrixTimer), 700);
+    }, duration);
+  };
+
+  /* ---------------------------------------------------------------- */
+  /* shell plumbing                                                    */
+  /* ---------------------------------------------------------------- */
+
+  const history: string[] = [];
+  let historyIndex = -1;
+  let booted = false;
+
+  const print = (text: string, tone: 'plain' | 'cmd' | 'dim' = 'plain') => {
+    const line = document.createElement('div');
+    if (tone === 'cmd') line.className = 'shell-cmd';
+    if (tone === 'dim') line.className = 'shell-dim';
+    line.textContent = text;
+    out.appendChild(line);
+    out.scrollTop = out.scrollHeight;
+    return line;
+  };
+
+  const openShell = () => {
+    overlay.hidden = false;
+    if (!booted) {
+      booted = true;
+      print('caleb-haymore guest shell (ash v1.0 — ascii shell)', 'dim');
+      print("type 'help' to get started. 'exit' or esc to leave.", 'dim');
+      print('');
+    }
+    input.focus();
+  };
+
+  const closeShell = () => {
+    overlay.hidden = true;
+    input.blur();
+  };
+
+  /* ---------------------------------------------------------------- */
+  /* commands                                                          */
+  /* ---------------------------------------------------------------- */
+
+  const FORTUNES = [
+    '"Fear is the mind-killer." — Frank Herbert, Dune',
+    '"Violence is the last refuge of the incompetent." — Isaac Asimov, Foundation',
+    '"The universe is a dark forest." — Liu Cixin, The Three-Body Problem',
+    '"Any sufficiently advanced technology is indistinguishable from magic." — Arthur C. Clarke',
+    '"The future is already here — it\'s just not evenly distributed." — William Gibson',
+    '"The enemy\'s gate is down." — Orson Scott Card, Ender\'s Game',
+    '"I must not fear. Fear is the little-death that brings total obliteration." — Dune',
+    '"There is no law but the law of unintended consequences." — every case competition, eventually',
+  ];
+
+  const pageNames = pageLinks.map((link) => link.label.toLowerCase());
+
+  const cmdTicker = () => {
+    const cols = 44;
+    const rows = 9;
+    let value = rows / 2;
+    const series: number[] = [];
+    for (let i = 0; i < cols; i += 1) {
+      value += (Math.random() - 0.48) * 1.6;
+      value = Math.max(0.5, Math.min(rows - 0.5, value));
+      series.push(value);
+    }
+    const grid = Array.from({ length: rows }, () => Array.from({ length: cols }, () => ' '));
+    series.forEach((point, i) => {
+      grid[rows - 1 - Math.floor(point)][i] = '*';
+    });
+    const change = (((series[cols - 1] - series[0]) / rows) * 24).toFixed(2);
+    const sign = Number(change) >= 0 ? '+' : '';
+    print(`$CHAY — simulated feed, not investment advice`, 'dim');
+    print(grid.map((row) => `|${row.join('')}|`).join('\n'));
+    print(`session: ${sign}${change}%  volume: imaginary  spread: 1-bit`, 'dim');
+  };
+
+  const cmdTennis = () => {
+    const width = 34;
+    const frameLine = print('');
+    let pos = 2;
+    let dir = 1;
+    let bounces = 0;
+
+    const render = () => {
+      const court = Array.from({ length: width }, () => ' ');
+      court[0] = '|';
+      court[width - 1] = '|';
+      court[Math.floor(width / 2)] = ':';
+      court[1] = dir === 1 && pos < 4 ? ')' : '>';
+      court[width - 2] = dir === -1 && pos > width - 5 ? '(' : '<';
+      court[pos] = 'o';
+      frameLine.textContent = court.join('');
+    };
+
+    const timer = setInterval(() => {
+      pos += dir * 2;
+      if (pos >= width - 3) {
+        dir = -1;
+        bounces += 1;
+      }
+      if (pos <= 2) {
+        dir = 1;
+        bounces += 1;
+      }
+      render();
+      if (bounces >= 7) {
+        clearInterval(timer);
+        print('rally over: winner down the line. 40–love.', 'dim');
+        out.scrollTop = out.scrollHeight;
+      }
+    }, reduceMotion ? 0 : 80);
+    render();
+  };
+
+  const commands: Record<string, (args: string[]) => void> = {
+    help: () => {
+      print(
+        [
+          'available commands:',
+          '  help            this menu',
+          '  ls [projects]   list pages, or projects',
+          '  cd <page>       navigate (e.g. cd writing)',
+          '  cat about.txt   who runs this place',
+          '  whoami          who you are',
+          '  date            current time',
+          '  echo <text>     repeat after you',
+          '  fortune         sci-fi wisdom',
+          '  ticker          simulated market feed',
+          '  tennis          rally simulator',
+          '  matrix          follow the white rabbit',
+          '  clear           wipe scrollback',
+          '  exit            close shell',
+        ].join('\n'),
+      );
+      print('hint: a few commands are undocumented. 中文也可以。', 'dim');
+    },
+    ls: (args) => {
+      if (args[0]?.replace(/\/$/, '') === 'projects') {
+        projects.forEach((project) => print(`  ${project.title}`));
+        return;
+      }
+      print(pageNames.map((name) => (name === 'home' ? '~' : `${name}/`)).join('   '));
+    },
+    cd: (args) => {
+      const target = (args[0] ?? '').replace(/^\//, '').replace(/\/$/, '').toLowerCase();
+      if (!target || target === '~' || target === 'home') {
+        window.location.href = '/';
+        return;
+      }
+      if (pageNames.includes(target)) {
+        print(`navigating to /${target} ...`, 'dim');
+        window.location.href = `/${target}`;
+      } else {
+        print(`cd: no such directory: ${target}`);
+      }
+    },
+    cat: (args) => {
+      if ((args[0] ?? '').startsWith('about')) {
+        print(site.intro);
+        print(`current mode: inquiry / build / write`, 'dim');
+      } else {
+        print(`cat: ${args[0] ?? ''}: No such file or directory`);
+      }
+    },
+    whoami: () => {
+      print('guest — welcome. this machine belongs to caleb haymore.');
+      print('finance / law / systems. tennis on weekends.', 'dim');
+    },
+    pwd: () => print('/home/caleb/guest'),
+    date: () => print(new Date().toString()),
+    echo: (args) => print(args.join(' ')),
+    fortune: () => print(FORTUNES[Math.floor(Math.random() * FORTUNES.length)]),
+    ticker: cmdTicker,
+    tennis: cmdTennis,
+    matrix: () => {
+      print('wake up...', 'dim');
+      runMatrix();
+    },
+    sudo: () => {
+      print('permission denied: root belongs to caleb.');
+      print('try asking nicely at /contact.', 'dim');
+    },
+    konami: () => print('↑ ↑ ↓ ↓ ← → ← → b a — anywhere on the site.'),
+    phosphor: () => setPhosphor(phosphor.hidden),
+    history: () => history.forEach((entry, i) => print(`  ${i + 1}  ${entry}`)),
+    ping: () => print('pong (0.42ms — suspiciously fast)'),
+    clear: () => {
+      out.textContent = '';
+    },
+    exit: closeShell,
+  };
+
+  commands['open'] = commands['cd'];
+  commands['quit'] = commands['exit'];
+  commands['cls'] = commands['clear'];
+
+  const runCommand = (raw: string) => {
+    const line = raw.trim();
+    print(`guest@caleb:~$ ${line}`, 'cmd');
+    if (!line) return;
+
+    history.push(line);
+    historyIndex = history.length;
+
+    if (/^(zh|nihao|你好|中文)$/i.test(line)) {
+      print('你好！caleb 说中文，也喜欢中国文化和科幻小说。');
+      print("(he speaks mandarin. try 'fortune' — one of them is from 刘慈欣.)", 'dim');
+      return;
+    }
+
+    const [name, ...args] = line.split(/\s+/);
+    const command = commands[name.toLowerCase()];
+    if (command) {
+      command(args);
+    } else {
+      print(`ash: command not found: ${name} — try 'help'`);
+    }
+  };
+
+  /* ---------------------------------------------------------------- */
+  /* wiring                                                            */
+  /* ---------------------------------------------------------------- */
+
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      runCommand(input.value);
+      input.value = '';
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      if (historyIndex > 0) {
+        historyIndex -= 1;
+        input.value = history[historyIndex] ?? '';
+      }
+    } else if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      if (historyIndex < history.length - 1) {
+        historyIndex += 1;
+        input.value = history[historyIndex] ?? '';
+      } else {
+        historyIndex = history.length;
+        input.value = '';
+      }
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    const target = event.target as HTMLElement | null;
+    const typing =
+      target instanceof HTMLInputElement ||
+      target instanceof HTMLTextAreaElement ||
+      target?.isContentEditable;
+
+    if (event.key === '`' && !typing) {
+      event.preventDefault();
+      overlay.hidden ? openShell() : closeShell();
+    }
+    if (event.key === 'Escape' && !overlay.hidden) {
+      closeShell();
+    }
+  });
+
+  overlay.addEventListener('click', (event) => {
+    if (event.target === overlay) closeShell();
+  });
+
+  document.addEventListener('open-shell', openShell);
+</script>

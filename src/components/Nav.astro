@@ -1,23 +1,70 @@
 ---
 import { pageLinks, site } from '../data/site';
+
+const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
+const isActive = (href: string) => (href === '/' ? currentPath === '/' : currentPath === href);
 ---
 
 <nav class="fixed top-0 left-0 right-0 z-50 border-b border-zinc-700 bg-black/95">
   <div class="site-shell h-16 flex items-center justify-between gap-6">
-    <a href="/" class="text-xs sm:text-sm font-bold uppercase tracking-[0.22em] text-zinc-100">~/caleb</a>
+    <a href="/" class="cursor-block text-xs sm:text-sm font-bold uppercase tracking-[0.22em] text-zinc-100">~/caleb</a>
     <div class="hidden md:flex gap-1 text-xs text-zinc-400" aria-label="Primary navigation">
       <span class="text-zinc-600">[</span>
       {pageLinks.slice(1).map((link) => (
-        <a href={link.href} class="px-2 uppercase hover:text-white transition-colors">{link.label}</a>
+        <a
+          href={link.href}
+          class:list={[
+            'px-2 uppercase transition-colors',
+            isActive(link.href) ? 'text-white underline underline-offset-4' : 'hover:text-white',
+          ]}
+          aria-current={isActive(link.href) ? 'page' : undefined}
+        >{link.label}</a>
       ))}
       <span class="text-zinc-600">]</span>
     </div>
-    <div class="md:hidden text-xs text-zinc-400">[MENU]</div>
-    <div class="hidden lg:block text-xs text-zinc-600" aria-hidden="true">{site.tagline}</div>
+    <button
+      id="nav-menu-toggle"
+      type="button"
+      class="md:hidden text-xs text-zinc-400 hover:text-white transition-colors"
+      aria-expanded="false"
+      aria-controls="nav-mobile-menu"
+    >[MENU]</button>
+    <div class="hidden lg:flex items-center gap-4 text-xs text-zinc-600" aria-hidden="true">
+      <span>{site.tagline}</span>
+      <span id="nav-clock" class="text-zinc-500 tabular-nums"></span>
+    </div>
   </div>
-  <div class="site-shell nav-mobile md:hidden pb-3">
+  <div id="nav-mobile-menu" class="site-shell nav-mobile md:hidden pb-3" hidden>
     {pageLinks.slice(1).map((link) => (
-      <a href={link.href} class="uppercase hover:text-white transition-colors">{link.label}</a>
+      <a
+        href={link.href}
+        class:list={[
+          'uppercase transition-colors',
+          isActive(link.href) ? 'text-white' : 'hover:text-white',
+        ]}
+        aria-current={isActive(link.href) ? 'page' : undefined}
+      >{link.label}</a>
     ))}
   </div>
 </nav>
+
+<script>
+  const toggle = document.getElementById('nav-menu-toggle');
+  const menu = document.getElementById('nav-mobile-menu');
+
+  toggle?.addEventListener('click', () => {
+    if (!menu) return;
+    menu.hidden = !menu.hidden;
+    toggle.setAttribute('aria-expanded', String(!menu.hidden));
+    toggle.textContent = menu.hidden ? '[MENU]' : '[CLOSE]';
+  });
+
+  const clock = document.getElementById('nav-clock');
+  if (clock) {
+    const tick = () => {
+      clock.textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
+    };
+    tick();
+    setInterval(tick, 1000);
+  }
+</script>

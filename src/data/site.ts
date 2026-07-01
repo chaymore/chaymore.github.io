@@ -3,7 +3,7 @@ export const site = {
   tagline: 'Finance, law, and systems thinking.',
   intro:
     'Finance student at BYU interested in the touchpoint between finance and law. Find me on the tennis court or reading a sci-fi novel.',
-  email: 'you@example.com',
+  email: 'calebhaymore@gmail.com',
   socialLinks: [
     { label: 'GitHub', href: 'https://github.com/chaymore' },
     { label: 'LinkedIn', href: 'https://www.linkedin.com/in/caleb-haymore/' },

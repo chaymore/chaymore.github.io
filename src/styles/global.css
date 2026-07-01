@@ -230,3 +230,215 @@ a {
     bottom: 0.875rem;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* motion                                                              */
+/* ------------------------------------------------------------------ */
+
+@keyframes reveal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    opacity: 0;
+    animation: reveal-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation-delay: var(--d, 0s);
+  }
+}
+
+@keyframes cursor-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.cursor-block::after {
+  content: "█";
+  margin-left: 0.12em;
+  animation: cursor-blink 1.06s steps(1) infinite;
+}
+
+/* ------------------------------------------------------------------ */
+/* guest shell                                                         */
+/* ------------------------------------------------------------------ */
+
+.shell-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9900;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.shell-overlay[hidden] {
+  display: none;
+}
+
+.shell-panel {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 46rem);
+  height: min(68vh, 32rem);
+  margin-bottom: 4vh;
+  padding: 1.25rem;
+}
+
+.shell-out {
+  flex: 1;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: rgb(212 212 216);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.shell-out .shell-cmd {
+  color: rgb(244 244 245);
+}
+
+.shell-out .shell-dim {
+  color: rgb(113 113 122);
+}
+
+.shell-line {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed rgb(63 63 70);
+}
+
+.shell-prompt {
+  color: rgb(113 113 122);
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.shell-in {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-size: 0.78rem;
+  caret-color: #fff;
+}
+
+/* ------------------------------------------------------------------ */
+/* easter-egg overlays                                                 */
+/* ------------------------------------------------------------------ */
+
+.matrix-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 9980;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+@keyframes phosphor-flicker {
+  0%, 100% {
+    opacity: 1;
+  }
+  92% {
+    opacity: 1;
+  }
+  93% {
+    opacity: 0.86;
+  }
+  94% {
+    opacity: 1;
+  }
+}
+
+.phosphor-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9990;
+  pointer-events: none;
+  backdrop-filter: sepia(1) hue-rotate(55deg) saturate(3.4) brightness(0.92) contrast(1.06);
+  -webkit-backdrop-filter: sepia(1) hue-rotate(55deg) saturate(3.4) brightness(0.92) contrast(1.06);
+  animation: phosphor-flicker 6s steps(1) infinite;
+}
+
+.phosphor-overlay[hidden] {
+  display: none;
+}
+
+.egg-toast {
+  position: fixed;
+  top: 5.5rem;
+  left: 50%;
+  z-index: 9995;
+  transform: translateX(-50%);
+  padding: 0.6rem 1.1rem;
+  border: 1px solid rgb(161 161 170);
+  background: rgba(0, 0, 0, 0.92);
+  color: rgb(244 244 245);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.egg-toast[hidden] {
+  display: none;
+}
+
+.egg-toast.egg-toast-out {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-8px);
+}
+
+/* ------------------------------------------------------------------ */
+/* small interactions                                                  */
+/* ------------------------------------------------------------------ */
+
+@keyframes portrait-jitter {
+  25% {
+    transform: translate(1px, -1px);
+  }
+  75% {
+    transform: translate(-1px, 1px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ascii-portrait:hover pre {
+    animation: portrait-jitter 0.4s steps(2) infinite;
+  }
+}
+
+.ascii-portrait {
+  cursor: pointer;
+  user-select: none;
+}
+
+.konami-hint {
+  color: rgb(39 39 42);
+  font-size: 0.62rem;
+  letter-spacing: 0.3em;
+  user-select: none;
+  transition: color 0.6s ease;
+}
+
+.konami-hint:hover {
+  color: rgb(113 113 122);
+}

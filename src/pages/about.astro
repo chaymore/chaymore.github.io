@@ -9,14 +9,14 @@ import { site } from '../data/site';
 
   <main class="site-shell pt-28 pb-24 flex flex-col gap-10">
     <header class="flex flex-col gap-3 pb-4">
-      <p class="text-xs uppercase tracking-[0.22em] text-zinc-500">caleb@portfolio:~$ cat about.txt</p>
-      <h1 class="text-4xl font-bold text-zinc-100">About</h1>
-      <div class="ascii-rule" aria-hidden="true"></div>
+      <p class="type-line text-xs uppercase tracking-[0.22em] text-zinc-500">caleb@portfolio:~$ cat about.txt</p>
+      <h1 class="text-4xl font-bold text-zinc-100 reveal">About</h1>
+      <div class="ascii-rule reveal" style="--d: 0.1s" aria-hidden="true"></div>
     </header>
 
     <section class="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] items-start">
-      <div class="ascii-portrait" aria-label="ASCII portrait placeholder">
-        <pre>{`             .-""""-.
+      <div id="ascii-portrait" class="ascii-portrait reveal" style="--d: 0.15s" aria-label="ASCII portrait placeholder" title="click me">
+        <pre id="portrait-art">{`             .-""""-.
           .-'  .--.  '-.
         .'   .'    '.   '.
        /    /  .--.  \\    \\
@@ -32,7 +32,7 @@ import { site } from '../data/site';
        public/profile.jpg`}</pre>
       </div>
 
-      <div class="ascii-panel p-6 flex flex-col gap-5 text-zinc-300 leading-relaxed" data-title="bio-record">
+      <div class="ascii-panel p-6 flex flex-col gap-5 text-zinc-300 leading-relaxed reveal" style="--d: 0.22s" data-title="bio-record">
         <p class="text-lg text-zinc-100">{site.name}</p>
         <p>{site.intro}</p>
         <p>
@@ -54,3 +54,27 @@ import { site } from '../data/site';
     </section>
   </main>
 </Layout>
+
+<script>
+  const portrait = document.getElementById('ascii-portrait');
+  const art = document.getElementById('portrait-art');
+
+  const FACES = [
+    { eyes: '   o  o   ', mouth: ' \\____/ ' },
+    { eyes: '   -  o   ', mouth: ' \\____/ ' }, // wink
+    { eyes: '   o  o   ', mouth: '  ____  ' }, // deadpan
+    { eyes: '   ^  ^   ', mouth: ' \\____/ ' }, // delighted
+  ];
+
+  if (portrait && art) {
+    const base = art.textContent ?? '';
+    let face = 0;
+
+    portrait.addEventListener('click', () => {
+      face = (face + 1) % FACES.length;
+      art.textContent = base
+        .replace(FACES[0].eyes, FACES[face].eyes)
+        .replace(FACES[0].mouth, FACES[face].mouth);
+    });
+  }
+</script>
