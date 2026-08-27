@@ -6,11 +6,17 @@ import GuestShell from '../components/GuestShell.astro';
 interface Props {
   title?: string;
   description?: string;
+  robots?: string;
+  minimal?: boolean;
+  bodyClass?: string;
 }
 
 const {
   title = 'Caleb Haymore',
   description = 'Caleb Haymore — finance, law, and systems thinking. BYU finance student building at the touchpoint of capital, rules, and technology.',
+  robots,
+  minimal = false,
+  bodyClass = '',
 } = Astro.props;
 ---
 
@@ -21,12 +27,13 @@ const {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
+    {robots && <meta name="robots" content={robots} />}
     <title>{title}</title>
   </head>
-  <body class="bg-black text-zinc-100 min-h-screen font-mono antialiased">
+  <body class:list={['bg-black text-zinc-100 min-h-screen font-mono antialiased', bodyClass]}>
     <slot />
-    <Footer />
-    <GuestShell />
+    {!minimal && <Footer />}
+    {!minimal && <GuestShell />}
 
     <script>
       // Typewriter effect for terminal prompt lines.

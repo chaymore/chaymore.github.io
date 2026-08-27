@@ -1,0 +1,441 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout
+  title="Life Hub // Caleb Haymore"
+  description="Caleb Haymore's private planning dashboard."
+  robots="noindex, nofollow, noarchive, nosnippet"
+  minimal
+  bodyClass="hub-body"
+>
+  <main class="hub-shell" data-hub>
+    <section class="pin-gate" data-gate aria-labelledby="gate-title">
+      <div class="gate-mark" aria-hidden="true">[ CH / PRIVATE ]</div>
+      <div class="ascii-panel gate-panel" data-title="secure access">
+        <p class="eyebrow">PERSONAL OPERATIONS SYSTEM</p>
+        <h1 id="gate-title">Enter access PIN<span class="blink">_</span></h1>
+        <p class="gate-copy">This dashboard stays locked for the current browser session.</p>
+        <form class="pin-form" data-pin-form>
+          <label class="sr-only" for="hub-pin">Four-digit PIN</label>
+          <input
+            id="hub-pin"
+            data-pin
+            type="password"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            maxlength="4"
+            autocomplete="off"
+            placeholder="••••"
+            autofocus
+          />
+          <button type="submit">UNLOCK →</button>
+        </form>
+        <p class="gate-error" data-pin-error role="alert" aria-live="polite"></p>
+      </div>
+      <p class="gate-note">STATIC SESSION GATE · NO FINANCIAL CREDENTIALS STORED</p>
+    </section>
+
+    <section class="dashboard" data-dashboard hidden>
+      <header class="hub-header">
+        <div>
+          <p class="eyebrow">CALEB HAYMORE // LIFE OPS</p>
+          <h1>CONTROL CENTER<span class="blink">_</span></h1>
+        </div>
+        <div class="header-status">
+          <span data-full-date></span>
+          <span class="status-live"><i></i> LOCAL DATA</span>
+          <button class="text-button" type="button" data-lock>LOCK</button>
+        </div>
+      </header>
+
+      <nav class="day-nav" aria-label="Select planning day" data-day-nav>
+        <span>SEMESTER MAP</span>
+        <div>
+          <button type="button" data-day="mon">MON</button>
+          <button type="button" data-day="tue">TUE</button>
+          <button type="button" data-day="wed">WED</button>
+          <button type="button" data-day="thu">THU</button>
+          <button type="button" data-day="fri">FRI</button>
+        </div>
+      </nav>
+
+      <div class="hub-grid">
+        <section class="ascii-panel focus-panel" data-title="01 / primary focus">
+          <div class="focus-meta">
+            <span data-focus-course>FIN 444</span>
+            <span data-focus-window>10:45–11:45</span>
+          </div>
+          <h2 data-focus-title>Prepare for Fintech</h2>
+          <p data-focus-copy>Review the assignment brief and turn class notes into the next concrete action.</p>
+          <a class="primary-action" data-focus-link href="https://learningsuite.byu.edu/">OPEN WORKSPACE →</a>
+          <div class="timer" data-timer>
+            <div>
+              <span class="timer-label">FOCUS BLOCK</span>
+              <strong data-timer-display>50:00</strong>
+            </div>
+            <div class="timer-actions">
+              <button type="button" data-timer-toggle>START</button>
+              <button type="button" data-timer-reset>RESET</button>
+            </div>
+          </div>
+          <div class="quick-links">
+            <a href="https://calendar.google.com/calendar/u/0/r" target="_blank" rel="noreferrer">CALENDAR ↗</a>
+            <a href="https://learningsuite.byu.edu/" target="_blank" rel="noreferrer">LEARNING SUITE ↗</a>
+          </div>
+        </section>
+
+        <section class="ascii-panel schedule-panel" data-title="02 / day map">
+          <div class="panel-heading">
+            <div>
+              <span data-day-label>TUESDAY</span>
+              <strong data-day-theme>CLASS + PLSA</strong>
+            </div>
+            <span data-event-count>5 BLOCKS</span>
+          </div>
+          <div class="timeline" data-timeline></div>
+        </section>
+
+        <section class="right-stack">
+          <div class="ascii-panel queue-panel" data-title="03 / action queue">
+            <div class="queue-head">
+              <span>NEXT ACTIONS</span>
+              <span data-queue-count>0/4</span>
+            </div>
+            <div class="check-list" data-queue>
+              <label><input type="checkbox" data-save="fin-assignment" /><span><b>FIN 444</b> Move assignment forward</span><em>TODAY</em></label>
+              <label><input type="checkbox" data-save="religion-reading" /><span><b>REL C 351</b> Complete reading</span><em>THU</em></label>
+              <label><input type="checkbox" data-save="plsa-agenda" /><span><b>PLSA</b> Draft next agenda</span><em>THU</em></label>
+              <label><input type="checkbox" data-save="message-triage" /><span><b>MESSAGES</b> One-pass triage</span><em>15M</em></label>
+            </div>
+          </div>
+
+          <div class="ascii-panel goals-panel" data-title="04 / weekly commitments">
+            <div class="goal-row">
+              <span>DEEP WORK</span>
+              <div class="goal-dots" data-goal="deep-work" aria-label="Deep work blocks completed">
+                <button type="button" aria-label="Deep work block 1"></button><button type="button" aria-label="Deep work block 2"></button><button type="button" aria-label="Deep work block 3"></button>
+              </div>
+              <em>3×</em>
+            </div>
+            <div class="goal-row">
+              <span>INBOX ZERO</span>
+              <div class="goal-dots" data-goal="inbox-zero" aria-label="Inbox goal completed">
+                <button type="button" aria-label="Inbox goal"></button>
+              </div>
+              <em>1×</em>
+            </div>
+            <div class="goal-row">
+              <span>WEEKLY RESET</span>
+              <div class="goal-dots" data-goal="weekly-reset" aria-label="Weekly reset completed">
+                <button type="button" aria-label="Weekly reset"></button>
+              </div>
+              <em>SUN</em>
+            </div>
+          </div>
+
+          <div class="ascii-panel admin-panel" data-title="05 / admin pulse">
+            <div><span>MESSAGES</span><b>TRIAGE DUE</b></div>
+            <div><span>BUDGET</span><b class="muted">CONNECTION PENDING</b></div>
+            <div><span>SCREEN TIME</span><b class="muted">COAST REVIEW / SUN</b></div>
+          </div>
+        </section>
+      </div>
+
+      <footer class="hub-footer">
+        <span>SHORTCUTS: <kbd>1–5</kbd> CHANGE DAY · <kbd>SPACE</kbd> TIMER · <kbd>L</kbd> LOCK</span>
+        <span>PROGRESS SAVES ON THIS DEVICE</span>
+      </footer>
+    </section>
+  </main>
+
+  <script>
+    const PIN_HASH = '9d70225dfc3f70cac539bd8de4a7ff7cf7abaaa1fd4ea25c7bca92c22659bab2';
+    const SESSION_KEY = 'caleb-hub-unlocked';
+    const STATE_KEY = 'caleb-hub-state-v1';
+
+    const schedule = {
+      mon: {
+        label: 'MONDAY', theme: 'PLAN + BUILD',
+        focus: ['WEEKLY PLAN', '08:30–09:20', 'Set the week in motion', 'Choose the three outcomes that matter and place their work blocks on the calendar.', 'https://calendar.google.com/calendar/u/0/r', 'OPEN CALENDAR →'],
+        events: [['08:30', 'Weekly planning', 'PERSONAL'], ['10:00', 'Priority work block', 'DEEP WORK'], ['14:00', 'Admin sweep', 'MESSAGES'], ['16:00', 'Friends + dates', 'SCHEDULE']]
+      },
+      tue: {
+        label: 'TUESDAY', theme: 'CLASS + PLSA',
+        focus: ['FIN 444', '10:45–11:45', 'Prepare for Fintech', 'Review the assignment brief and turn class notes into the next concrete action.', 'https://learningsuite.byu.edu/', 'OPEN WORKSPACE →'],
+        events: [['08:00', 'PSE 390 · Ethics for Management', '2256 TNRB'], ['09:30', 'FIN 444 · Fintech', '1439 TNRB'], ['10:45', 'Finance work block', 'HOMEWORK'], ['12:00', 'REL C 351 · World Religions', '203 JSB'], ['13:00', 'OGC work', 'UNTIL 17:00'], ['17:30', 'PLSA operations', 'LEADERSHIP']]
+      },
+      wed: {
+        label: 'WEDNESDAY', theme: 'LELAND / PROTECTED',
+        focus: ['LELAND', 'ALL DAY', 'Protect the boundary', 'Keep personal administration closed. Capture anything new and return to it on the next planning block.', '#', 'VIEW CAPTURE LIST →'],
+        events: [['08:00', 'HRM 391 · Org. Effectiveness', '2256 TNRB'], ['09:30', 'Leland job', 'PROTECTED'], ['17:30', 'Personal evening', 'OFFLINE']]
+      },
+      thu: {
+        label: 'THURSDAY', theme: 'CLASS + PLSA',
+        focus: ['PLSA', '17:30–18:20', 'Run the next meeting', 'Open the agenda, confirm owners, and make the next decision obvious before the meeting begins.', 'https://learningsuite.byu.edu/', 'OPEN PREP →'],
+        events: [['08:00', 'PSE 390 · Ethics for Management', '2256 TNRB'], ['09:30', 'FIN 444 · Fintech', '1439 TNRB'], ['10:45', 'Homework completion', 'DEEP WORK'], ['12:00', 'REL C 351 · World Religions', '203 JSB'], ['13:00', 'OGC work', 'UNTIL 17:00'], ['17:30', 'PLSA operations', 'LEADERSHIP']]
+      },
+      fri: {
+        label: 'FRIDAY', theme: 'LELAND / PROTECTED',
+        focus: ['LELAND', 'ALL DAY', 'Finish clean', 'Keep the day protected and write down loose ends for the Sunday reset instead of switching contexts.', '#', 'VIEW CAPTURE LIST →'],
+        events: [['08:30', 'Leland job', 'PROTECTED'], ['17:00', 'Weekly shutdown', '10 MIN'], ['18:00', 'Friends + dates', 'PERSONAL']]
+      }
+    };
+
+    const gate = document.querySelector('[data-gate]');
+    const dashboard = document.querySelector('[data-dashboard]');
+    const pinForm = document.querySelector('[data-pin-form]');
+    const pinInput = document.querySelector('[data-pin]');
+    const pinError = document.querySelector('[data-pin-error]');
+
+    const digest = async (value) => {
+      const bytes = new TextEncoder().encode(value);
+      const hash = await crypto.subtle.digest('SHA-256', bytes);
+      return [...new Uint8Array(hash)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+    };
+
+    const setLocked = (locked) => {
+      gate.hidden = !locked;
+      dashboard.hidden = locked;
+      document.body.classList.toggle('hub-locked', locked);
+      if (locked) requestAnimationFrame(() => pinInput?.focus());
+    };
+
+    pinForm?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      pinError.textContent = '';
+      if (await digest(pinInput.value) === PIN_HASH) {
+        sessionStorage.setItem(SESSION_KEY, 'true');
+        pinInput.value = '';
+        setLocked(false);
+      } else {
+        pinError.textContent = 'ACCESS DENIED · TRY AGAIN';
+        pinInput.select();
+      }
+    });
+
+    document.querySelector('[data-lock]')?.addEventListener('click', () => {
+      sessionStorage.removeItem(SESSION_KEY);
+      setLocked(true);
+    });
+
+    const now = new Date();
+    const weekdayKeys = ['mon', 'tue', 'wed', 'thu', 'fri'];
+    const jsDay = now.getDay();
+    let activeDay = jsDay >= 1 && jsDay <= 5 ? weekdayKeys[jsDay - 1] : 'mon';
+    document.querySelector('[data-full-date]').textContent = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase();
+
+    const renderDay = (key) => {
+      activeDay = key;
+      const day = schedule[key];
+      document.querySelectorAll('[data-day]').forEach((button) => button.classList.toggle('active', button.dataset.day === key));
+      document.querySelector('[data-day-label]').textContent = day.label;
+      document.querySelector('[data-day-theme]').textContent = day.theme;
+      document.querySelector('[data-event-count]').textContent = `${day.events.length} BLOCKS`;
+      const [course, window, title, copy, href, action] = day.focus;
+      document.querySelector('[data-focus-course]').textContent = course;
+      document.querySelector('[data-focus-window]').textContent = window;
+      document.querySelector('[data-focus-title]').textContent = title;
+      document.querySelector('[data-focus-copy]').textContent = copy;
+      const focusLink = document.querySelector('[data-focus-link]');
+      focusLink.textContent = action;
+      focusLink.href = href;
+      document.querySelector('[data-timeline]').innerHTML = day.events.map(([time, name, meta], index) => `
+        <div class="timeline-row ${index === 0 ? 'current' : ''}">
+          <time>${time}</time><i></i><div><strong>${name}</strong><span>${meta}</span></div>
+        </div>`).join('');
+    };
+
+    document.querySelector('[data-day-nav]')?.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-day]');
+      if (button) renderDay(button.dataset.day);
+    });
+    renderDay(activeDay);
+
+    let state = {};
+    try { state = JSON.parse(localStorage.getItem(STATE_KEY) || '{}'); } catch { state = {}; }
+    const saveState = () => localStorage.setItem(STATE_KEY, JSON.stringify(state));
+    const queueInputs = [...document.querySelectorAll('[data-save]')];
+    const updateQueueCount = () => {
+      const completed = queueInputs.filter((input) => input.checked).length;
+      document.querySelector('[data-queue-count]').textContent = `${completed}/${queueInputs.length}`;
+    };
+    queueInputs.forEach((input) => {
+      input.checked = Boolean(state[input.dataset.save]);
+      input.addEventListener('change', () => {
+        state[input.dataset.save] = input.checked;
+        saveState();
+        updateQueueCount();
+      });
+    });
+    updateQueueCount();
+
+    document.querySelectorAll('[data-goal]').forEach((group) => {
+      const buttons = [...group.querySelectorAll('button')];
+      const stateKey = `goal-${group.dataset.goal}`;
+      const initialValue = Number(state[stateKey] || 0);
+      buttons.forEach((button, index) => button.classList.toggle('done', index < initialValue));
+      group.addEventListener('click', (event) => {
+        const button = event.target.closest('button');
+        if (!button) return;
+        const index = buttons.indexOf(button);
+        const currentValue = Number(state[stateKey] || 0);
+        const next = button.classList.contains('done') && index === currentValue - 1 ? index : index + 1;
+        state[stateKey] = next;
+        buttons.forEach((item, itemIndex) => item.classList.toggle('done', itemIndex < next));
+        saveState();
+      });
+    });
+
+    let seconds = 50 * 60;
+    let timerId;
+    const timerDisplay = document.querySelector('[data-timer-display]');
+    const timerToggle = document.querySelector('[data-timer-toggle]');
+    const paintTimer = () => {
+      timerDisplay.textContent = `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
+    };
+    const toggleTimer = () => {
+      if (timerId) {
+        clearInterval(timerId); timerId = undefined; timerToggle.textContent = 'RESUME';
+      } else {
+        timerToggle.textContent = 'PAUSE';
+        timerId = window.setInterval(() => {
+          seconds = Math.max(0, seconds - 1); paintTimer();
+          if (seconds === 0) { clearInterval(timerId); timerId = undefined; timerToggle.textContent = 'DONE'; }
+        }, 1000);
+      }
+    };
+    timerToggle?.addEventListener('click', toggleTimer);
+    document.querySelector('[data-timer-reset]')?.addEventListener('click', () => {
+      if (timerId) clearInterval(timerId);
+      timerId = undefined; seconds = 50 * 60; timerToggle.textContent = 'START'; paintTimer();
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (dashboard.hidden || ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+      if (/^[1-5]$/.test(event.key)) renderDay(weekdayKeys[Number(event.key) - 1]);
+      if (event.code === 'Space') { event.preventDefault(); toggleTimer(); }
+      if (event.key.toLowerCase() === 'l') { sessionStorage.removeItem(SESSION_KEY); setLocked(true); }
+    });
+
+    setLocked(sessionStorage.getItem(SESSION_KEY) !== 'true');
+  </script>
+</Layout>
+
+<style>
+  :global(.hub-body) { overflow: hidden; }
+  :global(.hub-body *) { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+  button, input { font: inherit; }
+  button, a { -webkit-tap-highlight-color: transparent; }
+  .hub-shell { min-height: 100svh; color: #e4e4e7; }
+  .eyebrow { margin: 0; color: #71717a; font-size: .68rem; font-weight: 700; letter-spacing: .18em; }
+  .blink { animation: blink 1.05s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .pin-gate { display: grid; place-content: center; min-height: 100svh; padding: 2rem; }
+  .gate-mark { margin-bottom: 2rem; color: #52525b; text-align: center; font-size: .7rem; letter-spacing: .18em; }
+  .gate-panel { width: min(92vw, 34rem); padding: 2.25rem; }
+  .gate-panel h1 { margin: .7rem 0 .5rem; color: #fafafa; font-size: clamp(1.7rem, 5vw, 2.7rem); letter-spacing: -.055em; }
+  .gate-copy { margin: 0 0 1.7rem; color: #a1a1aa; font-size: .8rem; line-height: 1.6; }
+  .pin-form { display: grid; grid-template-columns: 1fr auto; gap: .65rem; }
+  .pin-form input { min-width: 0; padding: .85rem 1rem; border: 1px solid #52525b; outline: 0; background: #050505; color: #fff; font-size: 1.15rem; letter-spacing: .35em; }
+  .pin-form input:focus { border-color: #e4e4e7; box-shadow: 0 0 0 1px #e4e4e7; }
+  .pin-form button, .primary-action { padding: .85rem 1rem; border: 1px solid #e4e4e7; background: #e4e4e7; color: #09090b; font-size: .7rem; font-weight: 800; letter-spacing: .08em; text-decoration: none; cursor: pointer; }
+  .pin-form button:hover, .primary-action:hover { background: #fff; }
+  .gate-error { min-height: 1rem; margin: .8rem 0 0; color: #f87171; font-size: .68rem; letter-spacing: .1em; }
+  .gate-note { margin-top: 1.5rem; color: #3f3f46; text-align: center; font-size: .58rem; letter-spacing: .14em; }
+
+  .dashboard { display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; gap: .65rem; width: min(100% - 2rem, 94rem); height: 100svh; margin: 0 auto; padding: .8rem 0 .65rem; }
+  .hub-header { display: flex; align-items: flex-end; justify-content: space-between; min-height: 3.3rem; }
+  .hub-header h1 { margin: .1rem 0 0; color: #fafafa; font-size: clamp(1.35rem, 2.2vw, 2rem); line-height: 1; letter-spacing: -.05em; }
+  .header-status { display: flex; align-items: center; gap: 1rem; color: #71717a; font-size: .62rem; letter-spacing: .1em; }
+  .status-live { color: #a1a1aa; }
+  .status-live i { display: inline-block; width: .42rem; height: .42rem; margin-right: .3rem; border-radius: 50%; background: #4ade80; box-shadow: 0 0 8px rgba(74, 222, 128, .6); }
+  .text-button { padding: 0; border: 0; background: none; color: #a1a1aa; font-size: .62rem; letter-spacing: .12em; cursor: pointer; }
+  .text-button:hover { color: #fff; }
+  .day-nav { display: flex; align-items: center; justify-content: space-between; padding: .4rem .6rem; border-block: 1px solid #27272a; color: #52525b; font-size: .6rem; letter-spacing: .14em; }
+  .day-nav div { display: flex; gap: .2rem; }
+  .day-nav button { min-width: 2.65rem; padding: .28rem .5rem; border: 0; background: none; color: #71717a; font-size: .62rem; cursor: pointer; }
+  .day-nav button:hover { color: #e4e4e7; }
+  .day-nav button.active { background: #e4e4e7; color: #09090b; font-weight: 800; }
+
+  .hub-grid { display: grid; grid-template-columns: minmax(17rem, .88fr) minmax(24rem, 1.2fr) minmax(18rem, .9fr); gap: .75rem; min-height: 0; padding-top: .35rem; }
+  .hub-grid > *, .right-stack > * { min-height: 0; }
+  .focus-panel, .schedule-panel, .queue-panel, .goals-panel, .admin-panel { padding: 1.15rem; }
+  .focus-panel { display: flex; flex-direction: column; }
+  .focus-meta { display: flex; justify-content: space-between; margin-bottom: auto; color: #71717a; font-size: .62rem; letter-spacing: .11em; }
+  .focus-meta span:first-child { color: #e4e4e7; }
+  .focus-panel h2 { max-width: 11ch; margin: 1rem 0 .55rem; color: #fafafa; font-size: clamp(1.5rem, 2.3vw, 2.4rem); line-height: .95; letter-spacing: -.06em; }
+  .focus-panel > p { margin: 0 0 1rem; color: #a1a1aa; font-size: .73rem; line-height: 1.55; }
+  .primary-action { display: block; margin-bottom: 1rem; text-align: center; }
+  .timer { display: flex; align-items: flex-end; justify-content: space-between; padding-top: .85rem; border-top: 1px dashed #3f3f46; }
+  .timer-label { display: block; margin-bottom: .15rem; color: #52525b; font-size: .58rem; letter-spacing: .15em; }
+  .timer strong { color: #fafafa; font-size: clamp(1.5rem, 2.2vw, 2.2rem); font-weight: 500; letter-spacing: -.06em; }
+  .timer-actions { display: flex; gap: .35rem; }
+  .timer-actions button { padding: .38rem .5rem; border: 1px solid #3f3f46; background: #09090b; color: #a1a1aa; font-size: .56rem; cursor: pointer; }
+  .timer-actions button:hover { border-color: #a1a1aa; color: #fff; }
+  .quick-links { display: flex; justify-content: space-between; margin-top: auto; padding-top: 1rem; }
+  .quick-links a { color: #71717a; font-size: .58rem; letter-spacing: .08em; text-decoration: none; }
+  .quick-links a:hover { color: #fff; }
+
+  .schedule-panel { display: grid; grid-template-rows: auto minmax(0, 1fr); }
+  .panel-heading { display: flex; align-items: start; justify-content: space-between; padding-bottom: .7rem; border-bottom: 1px dashed #3f3f46; }
+  .panel-heading span { display: block; color: #71717a; font-size: .58rem; letter-spacing: .14em; }
+  .panel-heading strong { display: block; margin-top: .2rem; color: #e4e4e7; font-size: .85rem; }
+  .timeline { display: grid; align-content: stretch; min-height: 0; padding-top: .3rem; }
+  .timeline-row { display: grid; grid-template-columns: 2.9rem .55rem minmax(0, 1fr); align-items: center; gap: .55rem; min-height: 0; border-bottom: 1px solid #18181b; }
+  .timeline-row:last-child { border-bottom: 0; }
+  .timeline-row time { color: #71717a; font-size: .62rem; }
+  .timeline-row i { position: relative; width: .42rem; height: .42rem; border: 1px solid #52525b; border-radius: 50%; }
+  .timeline-row i::after { content: ''; position: absolute; top: .5rem; left: calc(50% - .5px); width: 1px; height: 3rem; background: #27272a; }
+  .timeline-row:last-child i::after { display: none; }
+  .timeline-row.current i { border-color: #e4e4e7; background: #e4e4e7; box-shadow: 0 0 10px rgba(255,255,255,.18); }
+  .timeline-row strong { display: block; overflow: hidden; color: #d4d4d8; font-size: clamp(.66rem, .8vw, .78rem); font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+  .timeline-row span { display: block; margin-top: .12rem; color: #52525b; font-size: .52rem; letter-spacing: .1em; }
+
+  .right-stack { display: grid; grid-template-rows: 1.55fr .85fr .68fr; gap: .75rem; }
+  .queue-panel { overflow: hidden; }
+  .queue-head { display: flex; justify-content: space-between; padding-bottom: .5rem; color: #71717a; font-size: .57rem; letter-spacing: .13em; }
+  .check-list { display: grid; }
+  .check-list label { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: .55rem; min-height: 2.45rem; border-top: 1px solid #27272a; cursor: pointer; }
+  .check-list input { appearance: none; width: .82rem; height: .82rem; border: 1px solid #71717a; background: #000; }
+  .check-list input:checked { background: #e4e4e7; box-shadow: inset 0 0 0 2px #000; }
+  .check-list input:checked + span { color: #52525b; text-decoration: line-through; }
+  .check-list span { overflow: hidden; color: #a1a1aa; font-size: .63rem; text-overflow: ellipsis; white-space: nowrap; }
+  .check-list b { color: #e4e4e7; font-weight: 700; }
+  .check-list em { color: #52525b; font-size: .5rem; font-style: normal; letter-spacing: .1em; }
+  .goals-panel { display: grid; align-content: center; gap: .55rem; }
+  .goal-row { display: grid; grid-template-columns: 1fr auto 2rem; align-items: center; gap: .6rem; color: #a1a1aa; font-size: .58rem; letter-spacing: .08em; }
+  .goal-row em { color: #52525b; text-align: right; font-size: .5rem; font-style: normal; }
+  .goal-dots { display: flex; gap: .28rem; }
+  .goal-dots button { width: .72rem; height: .72rem; padding: 0; border: 1px solid #52525b; background: #000; cursor: pointer; }
+  .goal-dots button.done { background: #e4e4e7; box-shadow: inset 0 0 0 2px #000; }
+  .admin-panel { display: grid; align-content: center; gap: .42rem; }
+  .admin-panel div { display: flex; justify-content: space-between; color: #71717a; font-size: .54rem; letter-spacing: .08em; }
+  .admin-panel b { color: #d4d4d8; font-weight: 600; }
+  .admin-panel .muted { color: #52525b; }
+  .hub-footer { display: flex; justify-content: space-between; color: #3f3f46; font-size: .52rem; letter-spacing: .09em; }
+  kbd { padding: .05rem .24rem; border: 1px solid #3f3f46; color: #71717a; font: inherit; }
+
+  @media (max-width: 980px) {
+    :global(.hub-body) { overflow: auto; }
+    .dashboard { height: auto; min-height: 100svh; }
+    .hub-grid { grid-template-columns: 1fr 1fr; }
+    .right-stack { grid-column: 1 / -1; grid-template-columns: 1.2fr 1fr 1fr; grid-template-rows: none; }
+  }
+  @media (max-width: 680px) {
+    .dashboard { width: min(100% - 1rem, 94rem); padding-top: .55rem; }
+    .header-status > span:first-child, .status-live, .hub-footer span:first-child { display: none; }
+    .day-nav > span { display: none; }
+    .day-nav { justify-content: center; }
+    .hub-grid, .right-stack { grid-template-columns: 1fr; }
+    .right-stack { grid-column: auto; grid-template-rows: auto; }
+    .focus-panel, .schedule-panel, .queue-panel, .goals-panel, .admin-panel { min-height: 20rem; }
+    .queue-panel, .goals-panel, .admin-panel { min-height: auto; }
+    .schedule-panel { min-height: 29rem; }
+    .pin-form { grid-template-columns: 1fr; }
+    .gate-panel { padding: 1.6rem; }
+  }
+</style>
