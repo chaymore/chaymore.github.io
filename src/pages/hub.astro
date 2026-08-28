@@ -3,439 +3,378 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout
-  title="Life Hub // Caleb Haymore"
-  description="Caleb Haymore's private planning dashboard."
+  title="Meadow // Caleb's Life Hub"
+  description="Caleb Haymore's private weekly planning and focus space."
   robots="noindex, nofollow, noarchive, nosnippet"
   minimal
   bodyClass="hub-body"
 >
-  <main class="hub-shell" data-hub>
+  <main class="meadow-app" data-hub>
+    <div class="meadow-fallback" aria-hidden="true"></div>
+    <canvas class="meadow-canvas" data-meadow-canvas aria-hidden="true"></canvas>
+    <div class="water-light" aria-hidden="true"></div>
+    <div class="sun-wash" aria-hidden="true"></div>
+
     <section class="pin-gate" data-gate aria-labelledby="gate-title">
-      <div class="gate-mark" aria-hidden="true">[ CH / PRIVATE ]</div>
-      <div class="ascii-panel gate-panel" data-title="secure access">
-        <p class="eyebrow">PERSONAL OPERATIONS SYSTEM</p>
-        <h1 id="gate-title">Enter access PIN<span class="blink">_</span></h1>
-        <p class="gate-copy">This dashboard stays locked for the current browser session.</p>
+      <div class="gate-card floating-board">
+        <div class="gate-leaf" aria-hidden="true">⌁</div>
+        <p class="kicker">CALEB'S PRIVATE MEADOW</p>
+        <h1 id="gate-title">Come on in.</h1>
+        <p class="gate-copy">Enter your PIN to open today’s plans.</p>
         <form class="pin-form" data-pin-form>
           <label class="sr-only" for="hub-pin">Four-digit PIN</label>
-          <input
-            id="hub-pin"
-            data-pin
-            type="password"
-            inputmode="numeric"
-            pattern="[0-9]*"
-            maxlength="4"
-            autocomplete="off"
-            placeholder="••••"
-            autofocus
-          />
-          <button type="submit">UNLOCK →</button>
+          <input id="hub-pin" data-pin type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••" autofocus />
+          <button type="submit">Enter meadow</button>
         </form>
         <p class="gate-error" data-pin-error role="alert" aria-live="polite"></p>
       </div>
-      <p class="gate-note">STATIC SESSION GATE · NO FINANCIAL CREDENTIALS STORED</p>
     </section>
 
     <section class="dashboard" data-dashboard hidden>
-      <header class="hub-header">
-        <div>
-          <p class="eyebrow">CALEB HAYMORE // LIFE OPS</p>
-          <h1>CONTROL CENTER<span class="blink">_</span></h1>
+      <header class="top-bar floating-board">
+        <div class="brand-lockup">
+          <span class="brand-mark" aria-hidden="true">⌁</span>
+          <div>
+            <strong>Caleb's meadow</strong>
+            <span data-full-date></span>
+          </div>
         </div>
-        <div class="header-status">
-          <span data-full-date></span>
-          <span class="status-live"><i></i> LOCAL DATA</span>
-          <button class="text-button" type="button" data-lock>LOCK</button>
+        <p class="welcome-line" data-welcome>Let’s make today feel lighter.</p>
+        <div class="environment-controls">
+          <button type="button" data-sound aria-pressed="false"><i class="sound-dot"></i><span>Sound off</span></button>
+          <button type="button" data-motion aria-pressed="false"><i class="motion-mark">≈</i><span>Still mode</span></button>
+          <button type="button" data-lock><span>Lock</span></button>
         </div>
       </header>
 
-      <nav class="day-nav" aria-label="Select planning day" data-day-nav>
-        <span>SEMESTER MAP</span>
-        <div>
-          <button type="button" data-day="mon">MON</button>
-          <button type="button" data-day="tue">TUE</button>
-          <button type="button" data-day="wed">WED</button>
-          <button type="button" data-day="thu">THU</button>
-          <button type="button" data-day="fri">FRI</button>
+      <div class="board-grid">
+        <div class="board-column left-column">
+          <article class="floating-board goals-board">
+            <header class="board-heading">
+              <div><span class="board-number">01</span><p>THIS WEEK</p></div>
+              <strong data-goal-total>0 of 3</strong>
+            </header>
+            <h2>Your north stars</h2>
+            <div class="goal-list">
+              <label><input type="checkbox" data-goal-check="deep-work" /><span><b>Three deep-work blocks</b><small>Protect the time before the week fills it.</small></span></label>
+              <label><input type="checkbox" data-goal-check="inbox" /><span><b>Clear priority messages</b><small>One thoughtful pass, then close it.</small></span></label>
+              <label><input type="checkbox" data-goal-check="reset" /><span><b>Complete Sunday reset</b><small>Review screen time and set the next week.</small></span></label>
+            </div>
+            <div class="goal-progress"><i data-goal-progress></i></div>
+          </article>
+
+          <article class="floating-board rhythm-board">
+            <header class="board-heading compact"><div><span class="board-number">02</span><p>WEEKLY RHYTHM</p></div></header>
+            <div class="rhythm-days" data-day-nav>
+              <button type="button" data-day="mon"><span>M</span><small>plan</small></button>
+              <button type="button" data-day="tue"><span>T</span><small>class</small></button>
+              <button type="button" data-day="wed"><span>W</span><small>Leland</small></button>
+              <button type="button" data-day="thu"><span>T</span><small>class</small></button>
+              <button type="button" data-day="fri"><span>F</span><small>Leland</small></button>
+            </div>
+            <p class="rhythm-note" data-rhythm-note>Class, homework, and PLSA move together today.</p>
+          </article>
         </div>
-      </nav>
 
-      <div class="hub-grid">
-        <section class="ascii-panel focus-panel" data-title="01 / primary focus">
-          <div class="focus-meta">
-            <span data-focus-course>FIN 444</span>
-            <span data-focus-window>10:45–11:45</span>
-          </div>
-          <h2 data-focus-title>Prepare for Fintech</h2>
-          <p data-focus-copy>Review the assignment brief and turn class notes into the next concrete action.</p>
-          <a class="primary-action" data-focus-link href="https://learningsuite.byu.edu/">OPEN WORKSPACE →</a>
-          <div class="timer" data-timer>
-            <div>
-              <span class="timer-label">FOCUS BLOCK</span>
-              <strong data-timer-display>50:00</strong>
+        <div class="board-column center-column">
+          <article class="floating-board focus-board">
+            <header class="board-heading">
+              <div><span class="board-number">03</span><p>READY WHEN YOU ARE</p></div>
+              <span class="focus-window" data-focus-window>10:45–11:45</span>
+            </header>
+            <div class="focus-copy">
+              <p data-focus-course>FIN 444 · FINTECH</p>
+              <h1 data-focus-title>Move the assignment forward.</h1>
+              <span data-focus-copy>Open the brief, find the next unfinished piece, and stay with it for one clean block.</span>
             </div>
-            <div class="timer-actions">
-              <button type="button" data-timer-toggle>START</button>
-              <button type="button" data-timer-reset>RESET</button>
+            <div class="focus-actions">
+              <a class="start-work" data-focus-link href="https://learningsuite.byu.edu/" target="_blank" rel="noreferrer"><span>Open homework</span><i aria-hidden="true">↗</i></a>
+              <div class="timer" data-timer>
+                <div><small>FOCUS TIMER</small><strong data-timer-display>50:00</strong></div>
+                <button type="button" data-timer-toggle>Start</button>
+                <button class="timer-reset" type="button" data-timer-reset aria-label="Reset focus timer">↺</button>
+              </div>
             </div>
-          </div>
-          <div class="quick-links">
-            <a href="https://calendar.google.com/calendar/u/0/r" target="_blank" rel="noreferrer">CALENDAR ↗</a>
-            <a href="https://learningsuite.byu.edu/" target="_blank" rel="noreferrer">LEARNING SUITE ↗</a>
-          </div>
-        </section>
+          </article>
 
-        <section class="ascii-panel schedule-panel" data-title="02 / day map">
-          <div class="panel-heading">
-            <div>
-              <span data-day-label>TUESDAY</span>
+          <article class="floating-board schedule-board">
+            <header class="board-heading compact">
+              <div><span class="board-number">04</span><p data-day-label>TUESDAY'S PATH</p></div>
               <strong data-day-theme>CLASS + PLSA</strong>
-            </div>
-            <span data-event-count>5 BLOCKS</span>
-          </div>
-          <div class="timeline" data-timeline></div>
-        </section>
+            </header>
+            <div class="schedule-track" data-timeline></div>
+          </article>
+        </div>
 
-        <section class="right-stack">
-          <div class="ascii-panel queue-panel" data-title="03 / action queue">
-            <div class="queue-head">
-              <span>NEXT ACTIONS</span>
-              <span data-queue-count>0/4</span>
+        <div class="board-column right-column">
+          <article class="floating-board budget-board">
+            <header class="board-heading">
+              <div><span class="board-number">05</span><p>WEEKLY BUDGET</p></div>
+              <button class="edit-button" type="button" data-budget-edit>Edit</button>
+            </header>
+            <div class="budget-hero">
+              <small>LEFT TO SPEND</small><strong data-budget-remaining>—</strong><span data-budget-caption>Set a weekly plan to begin.</span>
             </div>
-            <div class="check-list" data-queue>
-              <label><input type="checkbox" data-save="fin-assignment" /><span><b>FIN 444</b> Move assignment forward</span><em>TODAY</em></label>
-              <label><input type="checkbox" data-save="religion-reading" /><span><b>REL C 351</b> Complete reading</span><em>THU</em></label>
-              <label><input type="checkbox" data-save="plsa-agenda" /><span><b>PLSA</b> Draft next agenda</span><em>THU</em></label>
-              <label><input type="checkbox" data-save="message-triage" /><span><b>MESSAGES</b> One-pass triage</span><em>15M</em></label>
+            <div class="budget-meter"><i data-budget-meter></i></div>
+            <div class="budget-breakdown">
+              <div><span>Weekly plan</span><b data-budget-plan>—</b></div>
+              <div><span>Spent so far</span><b data-budget-spent>—</b></div>
             </div>
-          </div>
+            <p class="privacy-note">Manual for now · bank sync comes next</p>
+          </article>
 
-          <div class="ascii-panel goals-panel" data-title="04 / weekly commitments">
-            <div class="goal-row">
-              <span>DEEP WORK</span>
-              <div class="goal-dots" data-goal="deep-work" aria-label="Deep work blocks completed">
-                <button type="button" aria-label="Deep work block 1"></button><button type="button" aria-label="Deep work block 2"></button><button type="button" aria-label="Deep work block 3"></button>
-              </div>
-              <em>3×</em>
+          <article class="floating-board launch-board">
+            <header class="board-heading compact"><div><span class="board-number">06</span><p>JUMP BACK IN</p></div></header>
+            <div class="course-links">
+              <a href="https://learningsuite.byu.edu/" target="_blank" rel="noreferrer"><i>FI</i><span><b>FIN 444</b><small>Fintech</small></span><em>↗</em></a>
+              <a href="https://learningsuite.byu.edu/" target="_blank" rel="noreferrer"><i>PS</i><span><b>PSE 390</b><small>Ethics for Management</small></span><em>↗</em></a>
+              <a href="https://learningsuite.byu.edu/" target="_blank" rel="noreferrer"><i>RE</i><span><b>REL C 351</b><small>World Religions</small></span><em>↗</em></a>
+              <a href="https://learningsuite.byu.edu/" target="_blank" rel="noreferrer"><i>HR</i><span><b>HRM 391</b><small>Org. Effectiveness</small></span><em>↗</em></a>
             </div>
-            <div class="goal-row">
-              <span>INBOX ZERO</span>
-              <div class="goal-dots" data-goal="inbox-zero" aria-label="Inbox goal completed">
-                <button type="button" aria-label="Inbox goal"></button>
-              </div>
-              <em>1×</em>
-            </div>
-            <div class="goal-row">
-              <span>WEEKLY RESET</span>
-              <div class="goal-dots" data-goal="weekly-reset" aria-label="Weekly reset completed">
-                <button type="button" aria-label="Weekly reset"></button>
-              </div>
-              <em>SUN</em>
-            </div>
-          </div>
-
-          <div class="ascii-panel admin-panel" data-title="05 / admin pulse">
-            <div><span>MESSAGES</span><b>TRIAGE DUE</b></div>
-            <div><span>BUDGET</span><b class="muted">CONNECTION PENDING</b></div>
-            <div><span>SCREEN TIME</span><b class="muted">COAST REVIEW / SUN</b></div>
-          </div>
-        </section>
+          </article>
+        </div>
       </div>
 
-      <footer class="hub-footer">
-        <span>SHORTCUTS: <kbd>1–5</kbd> CHANGE DAY · <kbd>SPACE</kbd> TIMER · <kbd>L</kbd> LOCK</span>
-        <span>PROGRESS SAVES ON THIS DEVICE</span>
-      </footer>
+      <nav class="quick-dock floating-board" aria-label="Quick launch">
+        <span>OPEN</span>
+        <a href="https://calendar.google.com/calendar/u/0/r" target="_blank" rel="noreferrer">Calendar <i>↗</i></a>
+        <a href="https://learningsuite.byu.edu/" target="_blank" rel="noreferrer">Learning Suite <i>↗</i></a>
+        <a href="https://mail.google.com/mail/u/0/#inbox" target="_blank" rel="noreferrer">Personal inbox <i>↗</i></a>
+        <a href="https://outlook.office.com/mail/" target="_blank" rel="noreferrer">Outlook <i>↗</i></a>
+        <small>Progress saves on this device</small>
+      </nav>
     </section>
+
+    <dialog class="budget-dialog" data-budget-dialog>
+      <form method="dialog" data-budget-form>
+        <header><div><p>WEEKLY BUDGET</p><h2>Set this week's numbers</h2></div><button value="cancel" aria-label="Close">×</button></header>
+        <label>Planned spending <span><b>$</b><input data-budget-plan-input type="number" min="0" step="1" placeholder="180" /></span></label>
+        <label>Spent so far <span><b>$</b><input data-budget-spent-input type="number" min="0" step="1" placeholder="0" /></span></label>
+        <p>These numbers stay only in this browser.</p>
+        <button class="save-budget" value="default" type="submit">Save weekly budget</button>
+      </form>
+    </dialog>
   </main>
 
   <script>
     const PIN_HASH = '9d70225dfc3f70cac539bd8de4a7ff7cf7abaaa1fd4ea25c7bca92c22659bab2';
     const SESSION_KEY = 'caleb-hub-unlocked';
-    const STATE_KEY = 'caleb-hub-state-v1';
-
-    const schedule = {
-      mon: {
-        label: 'MONDAY', theme: 'PLAN + BUILD',
-        focus: ['WEEKLY PLAN', '08:30–09:20', 'Set the week in motion', 'Choose the three outcomes that matter and place their work blocks on the calendar.', 'https://calendar.google.com/calendar/u/0/r', 'OPEN CALENDAR →'],
-        events: [['08:30', 'Weekly planning', 'PERSONAL'], ['10:00', 'Priority work block', 'DEEP WORK'], ['14:00', 'Admin sweep', 'MESSAGES'], ['16:00', 'Friends + dates', 'SCHEDULE']]
-      },
-      tue: {
-        label: 'TUESDAY', theme: 'CLASS + PLSA',
-        focus: ['FIN 444', '10:45–11:45', 'Prepare for Fintech', 'Review the assignment brief and turn class notes into the next concrete action.', 'https://learningsuite.byu.edu/', 'OPEN WORKSPACE →'],
-        events: [['08:00', 'PSE 390 · Ethics for Management', '2256 TNRB'], ['09:30', 'FIN 444 · Fintech', '1439 TNRB'], ['10:45', 'Finance work block', 'HOMEWORK'], ['12:00', 'REL C 351 · World Religions', '203 JSB'], ['13:00', 'OGC work', 'UNTIL 17:00'], ['17:30', 'PLSA operations', 'LEADERSHIP']]
-      },
-      wed: {
-        label: 'WEDNESDAY', theme: 'LELAND / PROTECTED',
-        focus: ['LELAND', 'ALL DAY', 'Protect the boundary', 'Keep personal administration closed. Capture anything new and return to it on the next planning block.', '#', 'VIEW CAPTURE LIST →'],
-        events: [['08:00', 'HRM 391 · Org. Effectiveness', '2256 TNRB'], ['09:30', 'Leland job', 'PROTECTED'], ['17:30', 'Personal evening', 'OFFLINE']]
-      },
-      thu: {
-        label: 'THURSDAY', theme: 'CLASS + PLSA',
-        focus: ['PLSA', '17:30–18:20', 'Run the next meeting', 'Open the agenda, confirm owners, and make the next decision obvious before the meeting begins.', 'https://learningsuite.byu.edu/', 'OPEN PREP →'],
-        events: [['08:00', 'PSE 390 · Ethics for Management', '2256 TNRB'], ['09:30', 'FIN 444 · Fintech', '1439 TNRB'], ['10:45', 'Homework completion', 'DEEP WORK'], ['12:00', 'REL C 351 · World Religions', '203 JSB'], ['13:00', 'OGC work', 'UNTIL 17:00'], ['17:30', 'PLSA operations', 'LEADERSHIP']]
-      },
-      fri: {
-        label: 'FRIDAY', theme: 'LELAND / PROTECTED',
-        focus: ['LELAND', 'ALL DAY', 'Finish clean', 'Keep the day protected and write down loose ends for the Sunday reset instead of switching contexts.', '#', 'VIEW CAPTURE LIST →'],
-        events: [['08:30', 'Leland job', 'PROTECTED'], ['17:00', 'Weekly shutdown', '10 MIN'], ['18:00', 'Friends + dates', 'PERSONAL']]
-      }
-    };
-
-    const gate = document.querySelector('[data-gate]');
-    const dashboard = document.querySelector('[data-dashboard]');
-    const pinForm = document.querySelector('[data-pin-form]');
-    const pinInput = document.querySelector('[data-pin]');
-    const pinError = document.querySelector('[data-pin-error]');
+    const STATE_KEY = 'caleb-meadow-state-v1';
+    const BUDGET_KEY = 'caleb-meadow-budget-v1';
+    const $ = (selector) => document.querySelector(selector);
+    const $$ = (selector) => [...document.querySelectorAll(selector)];
+    const gate = $('[data-gate]');
+    const dashboard = $('[data-dashboard]');
+    const pinInput = $('[data-pin]');
+    const pinError = $('[data-pin-error]');
 
     const digest = async (value) => {
       const bytes = new TextEncoder().encode(value);
       const hash = await crypto.subtle.digest('SHA-256', bytes);
       return [...new Uint8Array(hash)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
     };
-
+    let stopSound = () => {};
     const setLocked = (locked) => {
-      gate.hidden = !locked;
-      dashboard.hidden = locked;
-      document.body.classList.toggle('hub-locked', locked);
-      if (locked) requestAnimationFrame(() => pinInput?.focus());
+      gate.hidden = !locked; dashboard.hidden = locked;
+      if (locked) { stopSound(); requestAnimationFrame(() => pinInput?.focus()); }
     };
-
-    pinForm?.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      pinError.textContent = '';
+    $('[data-pin-form]')?.addEventListener('submit', async (event) => {
+      event.preventDefault(); pinError.textContent = '';
       if (await digest(pinInput.value) === PIN_HASH) {
-        sessionStorage.setItem(SESSION_KEY, 'true');
-        pinInput.value = '';
-        setLocked(false);
-      } else {
-        pinError.textContent = 'ACCESS DENIED · TRY AGAIN';
-        pinInput.select();
-      }
+        sessionStorage.setItem(SESSION_KEY, 'true'); pinInput.value = ''; setLocked(false);
+      } else { pinError.textContent = 'That PIN didn’t open the gate. Try again.'; pinInput.select(); }
     });
-
-    document.querySelector('[data-lock]')?.addEventListener('click', () => {
-      sessionStorage.removeItem(SESSION_KEY);
-      setLocked(true);
-    });
+    $('[data-lock]')?.addEventListener('click', () => { sessionStorage.removeItem(SESSION_KEY); setLocked(true); });
 
     const now = new Date();
     const weekdayKeys = ['mon', 'tue', 'wed', 'thu', 'fri'];
     const jsDay = now.getDay();
     let activeDay = jsDay >= 1 && jsDay <= 5 ? weekdayKeys[jsDay - 1] : 'mon';
-    document.querySelector('[data-full-date]').textContent = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase();
+    $('[data-full-date]').textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+    const hour = now.getHours();
+    $('[data-welcome]').textContent = hour < 12 ? 'A clear start for the day ahead.' : hour < 17 ? 'One good block at a time.' : 'Let’s close the day gently.';
 
-    const renderDay = (key) => {
-      activeDay = key;
-      const day = schedule[key];
-      document.querySelectorAll('[data-day]').forEach((button) => button.classList.toggle('active', button.dataset.day === key));
-      document.querySelector('[data-day-label]').textContent = day.label;
-      document.querySelector('[data-day-theme]').textContent = day.theme;
-      document.querySelector('[data-event-count]').textContent = `${day.events.length} BLOCKS`;
-      const [course, window, title, copy, href, action] = day.focus;
-      document.querySelector('[data-focus-course]').textContent = course;
-      document.querySelector('[data-focus-window]').textContent = window;
-      document.querySelector('[data-focus-title]').textContent = title;
-      document.querySelector('[data-focus-copy]').textContent = copy;
-      const focusLink = document.querySelector('[data-focus-link]');
-      focusLink.textContent = action;
-      focusLink.href = href;
-      document.querySelector('[data-timeline]').innerHTML = day.events.map(([time, name, meta], index) => `
-        <div class="timeline-row ${index === 0 ? 'current' : ''}">
-          <time>${time}</time><i></i><div><strong>${name}</strong><span>${meta}</span></div>
-        </div>`).join('');
+    const schedule = {
+      mon: { label: "MONDAY'S PATH", theme: 'PLAN + BUILD', note: 'Set the direction, then protect the first important block.', focus: ['WEEKLY PLAN','08:30–09:20','Set the week in motion.','Choose the three outcomes that matter and place their work blocks on the calendar.','https://calendar.google.com/calendar/u/0/r','Open calendar'], events: [['08:30','Weekly planning'],['10:00','Priority work'],['14:00','Admin sweep'],['16:00','Friends + dates']] },
+      tue: { label: "TUESDAY'S PATH", theme: 'CLASS + PLSA', note: 'Class, homework, and PLSA move together today.', focus: ['FIN 444 · FINTECH','10:45–11:45','Move the assignment forward.','Open the brief, find the next unfinished piece, and stay with it for one clean block.','https://learningsuite.byu.edu/','Open homework'], events: [['08:00','PSE 390'],['09:30','FIN 444'],['10:45','Homework'],['12:00','REL C 351'],['13:00','OGC work'],['17:30','PLSA']] },
+      wed: { label: "WEDNESDAY'S PATH", theme: 'LELAND / PROTECTED', note: 'Personal administration stays closed. Capture it and keep moving.', focus: ['LELAND · PROTECTED','ALL DAY','Keep the boundary.','Capture personal loose ends without switching contexts. The meadow will hold them until the next planning block.','https://calendar.google.com/calendar/u/0/r','View calendar'], events: [['08:00','HRM 391'],['09:30','Leland job'],['17:30','Personal evening']] },
+      thu: { label: "THURSDAY'S PATH", theme: 'CLASS + PLSA', note: 'Finish the academic work, then make the PLSA meeting easy to run.', focus: ['PLSA · LEADERSHIP','17:30–18:20','Prepare the room to move.','Open the agenda, confirm owners, and make the next decision obvious before the meeting begins.','https://learningsuite.byu.edu/','Open preparation'], events: [['08:00','PSE 390'],['09:30','FIN 444'],['10:45','Homework'],['12:00','REL C 351'],['13:00','OGC work'],['17:30','PLSA']] },
+      fri: { label: "FRIDAY'S PATH", theme: 'LELAND / PROTECTED', note: 'Finish clean, then let the week loosen its grip.', focus: ['LELAND · PROTECTED','ALL DAY','Finish clean.','Write down loose ends for Sunday instead of carrying them into the evening.','https://calendar.google.com/calendar/u/0/r','View calendar'], events: [['08:30','Leland job'],['17:00','Weekly shutdown'],['18:00','Friends + dates']] }
     };
-
-    document.querySelector('[data-day-nav]')?.addEventListener('click', (event) => {
-      const button = event.target.closest('[data-day]');
-      if (button) renderDay(button.dataset.day);
-    });
+    const renderDay = (key) => {
+      activeDay = key; const day = schedule[key];
+      $$('[data-day]').forEach((button) => button.classList.toggle('active', button.dataset.day === key));
+      $('[data-rhythm-note]').textContent = day.note; $('[data-day-label]').textContent = day.label; $('[data-day-theme]').textContent = day.theme;
+      const [course, window, title, copy, href, action] = day.focus;
+      $('[data-focus-course]').textContent = course; $('[data-focus-window]').textContent = window; $('[data-focus-title]').textContent = title; $('[data-focus-copy]').textContent = copy;
+      $('[data-focus-link] span').textContent = action; $('[data-focus-link]').href = href;
+      $('[data-timeline]').innerHTML = day.events.map(([time,name],index) => `<div class="schedule-stop ${index === 0 ? 'current' : ''}"><time>${time}</time><span>${name}</span></div>`).join('');
+    };
+    $('[data-day-nav]')?.addEventListener('click', (event) => { const button = event.target.closest('[data-day]'); if (button) renderDay(button.dataset.day); });
     renderDay(activeDay);
 
     let state = {};
     try { state = JSON.parse(localStorage.getItem(STATE_KEY) || '{}'); } catch { state = {}; }
     const saveState = () => localStorage.setItem(STATE_KEY, JSON.stringify(state));
-    const queueInputs = [...document.querySelectorAll('[data-save]')];
-    const updateQueueCount = () => {
-      const completed = queueInputs.filter((input) => input.checked).length;
-      document.querySelector('[data-queue-count]').textContent = `${completed}/${queueInputs.length}`;
-    };
-    queueInputs.forEach((input) => {
-      input.checked = Boolean(state[input.dataset.save]);
-      input.addEventListener('change', () => {
-        state[input.dataset.save] = input.checked;
-        saveState();
-        updateQueueCount();
-      });
-    });
-    updateQueueCount();
+    const goalChecks = $$('[data-goal-check]');
+    const paintGoals = () => { const done = goalChecks.filter((input) => input.checked).length; $('[data-goal-total]').textContent = `${done} of ${goalChecks.length}`; $('[data-goal-progress]').style.width = `${done / goalChecks.length * 100}%`; };
+    goalChecks.forEach((input) => { input.checked = Boolean(state[input.dataset.goalCheck]); input.addEventListener('change', () => { state[input.dataset.goalCheck] = input.checked; saveState(); paintGoals(); }); });
+    paintGoals();
 
-    document.querySelectorAll('[data-goal]').forEach((group) => {
-      const buttons = [...group.querySelectorAll('button')];
-      const stateKey = `goal-${group.dataset.goal}`;
-      const initialValue = Number(state[stateKey] || 0);
-      buttons.forEach((button, index) => button.classList.toggle('done', index < initialValue));
-      group.addEventListener('click', (event) => {
-        const button = event.target.closest('button');
-        if (!button) return;
-        const index = buttons.indexOf(button);
-        const currentValue = Number(state[stateKey] || 0);
-        const next = button.classList.contains('done') && index === currentValue - 1 ? index : index + 1;
-        state[stateKey] = next;
-        buttons.forEach((item, itemIndex) => item.classList.toggle('done', itemIndex < next));
-        saveState();
-      });
+    const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+    let budget = {};
+    try { budget = JSON.parse(localStorage.getItem(BUDGET_KEY) || '{}'); } catch { budget = {}; }
+    const paintBudget = () => {
+      const hasPlan = Number.isFinite(budget.plan) && budget.plan > 0; const spent = Number.isFinite(budget.spent) ? budget.spent : 0; const remaining = hasPlan ? budget.plan - spent : 0;
+      $('[data-budget-remaining]').textContent = hasPlan ? money.format(remaining) : '—'; $('[data-budget-plan]').textContent = hasPlan ? money.format(budget.plan) : '—'; $('[data-budget-spent]').textContent = hasPlan ? money.format(spent) : '—';
+      $('[data-budget-caption]').textContent = hasPlan ? (remaining >= 0 ? 'Available through Sunday' : 'Over the weekly plan') : 'Set a weekly plan to begin.'; $('[data-budget-meter]').style.width = hasPlan ? `${Math.min(100, Math.max(0, spent / budget.plan * 100))}%` : '0%';
+    };
+    paintBudget();
+    const budgetDialog = $('[data-budget-dialog]');
+    $('[data-budget-edit]')?.addEventListener('click', () => { $('[data-budget-plan-input]').value = budget.plan || ''; $('[data-budget-spent-input]').value = budget.spent || ''; budgetDialog.showModal(); });
+    $('[data-budget-form]')?.addEventListener('submit', (event) => {
+      if (event.submitter?.value === 'cancel') return; event.preventDefault();
+      budget = { plan: Number($('[data-budget-plan-input]').value || 0), spent: Number($('[data-budget-spent-input]').value || 0) };
+      localStorage.setItem(BUDGET_KEY, JSON.stringify(budget)); paintBudget(); budgetDialog.close();
     });
 
-    let seconds = 50 * 60;
-    let timerId;
-    const timerDisplay = document.querySelector('[data-timer-display]');
-    const timerToggle = document.querySelector('[data-timer-toggle]');
-    const paintTimer = () => {
-      timerDisplay.textContent = `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
-    };
+    let seconds = 50 * 60; let timerId;
+    const timerDisplay = $('[data-timer-display]'); const timerToggle = $('[data-timer-toggle]');
+    const paintTimer = () => timerDisplay.textContent = `${String(Math.floor(seconds / 60)).padStart(2,'0')}:${String(seconds % 60).padStart(2,'0')}`;
     const toggleTimer = () => {
-      if (timerId) {
-        clearInterval(timerId); timerId = undefined; timerToggle.textContent = 'RESUME';
-      } else {
-        timerToggle.textContent = 'PAUSE';
-        timerId = window.setInterval(() => {
-          seconds = Math.max(0, seconds - 1); paintTimer();
-          if (seconds === 0) { clearInterval(timerId); timerId = undefined; timerToggle.textContent = 'DONE'; }
-        }, 1000);
-      }
+      if (timerId) { clearInterval(timerId); timerId = undefined; timerToggle.textContent = 'Resume'; }
+      else { timerToggle.textContent = 'Pause'; timerId = window.setInterval(() => { seconds = Math.max(0, seconds - 1); paintTimer(); if (seconds === 0) { clearInterval(timerId); timerId = undefined; timerToggle.textContent = 'Done'; } }, 1000); }
     };
     timerToggle?.addEventListener('click', toggleTimer);
-    document.querySelector('[data-timer-reset]')?.addEventListener('click', () => {
-      if (timerId) clearInterval(timerId);
-      timerId = undefined; seconds = 50 * 60; timerToggle.textContent = 'START'; paintTimer();
-    });
+    $('[data-timer-reset]')?.addEventListener('click', () => { if (timerId) clearInterval(timerId); timerId = undefined; seconds = 50 * 60; timerToggle.textContent = 'Start'; paintTimer(); });
 
+    let motionEnabled = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const motionButton = $('[data-motion]');
+    const paintMotion = () => { document.body.classList.toggle('motion-paused', !motionEnabled); motionButton.setAttribute('aria-pressed', String(!motionEnabled)); motionButton.querySelector('span').textContent = motionEnabled ? 'Still mode' : 'Resume breeze'; };
+    motionButton?.addEventListener('click', () => { motionEnabled = !motionEnabled; paintMotion(); }); paintMotion();
+
+    const soundButton = $('[data-sound]'); let audioContext; let soundOn = false; let masterGain; let birdTimeout;
+    const makeNoiseBuffer = (context, secondsLong) => { const buffer = context.createBuffer(1, context.sampleRate * secondsLong, context.sampleRate); const data = buffer.getChannelData(0); let last = 0; for (let i=0;i<data.length;i+=1) { const white = Math.random()*2-1; last = last*.985 + white*.015; data[i] = last*3.2; } return buffer; };
+    const birdCall = () => {
+      if (!soundOn || !audioContext) return; const start = audioContext.currentTime + .05; const gain = audioContext.createGain(); const osc = audioContext.createOscillator();
+      osc.type = 'sine'; osc.frequency.setValueAtTime(1700 + Math.random()*500,start); osc.frequency.exponentialRampToValueAtTime(2800 + Math.random()*700,start+.12); osc.frequency.exponentialRampToValueAtTime(1900,start+.3);
+      gain.gain.setValueAtTime(0,start); gain.gain.linearRampToValueAtTime(.045,start+.035); gain.gain.exponentialRampToValueAtTime(.001,start+.32); osc.connect(gain).connect(masterGain); osc.start(start); osc.stop(start+.34);
+      birdTimeout = window.setTimeout(birdCall, 5000 + Math.random()*9000);
+    };
+    const startSound = async () => {
+      if (!audioContext) {
+        audioContext = new AudioContext(); masterGain = audioContext.createGain(); masterGain.gain.value = .42; masterGain.connect(audioContext.destination);
+        const wind = audioContext.createBufferSource(); const windFilter = audioContext.createBiquadFilter(); const windGain = audioContext.createGain(); const windLfo = audioContext.createOscillator(); const windDepth = audioContext.createGain();
+        wind.buffer = makeNoiseBuffer(audioContext,4); wind.loop = true; windFilter.type = 'lowpass'; windFilter.frequency.value = 620; windGain.gain.value = .16; windLfo.frequency.value = .08; windDepth.gain.value = .035;
+        windLfo.connect(windDepth).connect(windGain.gain); wind.connect(windFilter).connect(windGain).connect(masterGain); wind.start(); windLfo.start();
+        const water = audioContext.createBufferSource(); const waterFilter = audioContext.createBiquadFilter(); const waterGain = audioContext.createGain();
+        water.buffer = makeNoiseBuffer(audioContext,3); water.loop = true; waterFilter.type = 'bandpass'; waterFilter.frequency.value = 1250; waterFilter.Q.value = .55; waterGain.gain.value = .055; water.connect(waterFilter).connect(waterGain).connect(masterGain); water.start();
+      }
+      await audioContext.resume(); soundOn = true; soundButton.setAttribute('aria-pressed','true'); soundButton.querySelector('span').textContent = 'Sound on'; birdCall();
+    };
+    stopSound = () => { soundOn = false; if (birdTimeout) clearTimeout(birdTimeout); audioContext?.suspend(); soundButton.setAttribute('aria-pressed','false'); soundButton.querySelector('span').textContent = 'Sound off'; };
+    soundButton?.addEventListener('click', () => soundOn ? stopSound() : startSound());
+
+    const initMeadow = () => {
+      const canvas = $('[data-meadow-canvas]'); const gl = canvas.getContext('webgl', { alpha:false, antialias:false, powerPreference:'low-power' }); if (!gl) return;
+      const vertexSource = `attribute vec2 aPosition; varying vec2 vUv; void main(){vUv=aPosition*.5+.5;gl_Position=vec4(aPosition,0.0,1.0);}`;
+      const fragmentSource = `
+        precision mediump float; varying vec2 vUv; uniform sampler2D uTexture; uniform vec2 uResolution; uniform float uImageAspect; uniform float uTime; uniform float uMotion;
+        vec2 coverUv(vec2 uv){float a=uResolution.x/uResolution.y;if(a>uImageAspect)uv.y=(uv.y-.5)*(uImageAspect/a)+.5;else uv.x=(uv.x-.5)*(a/uImageAspect)+.5;return uv;}
+        void main(){vec2 uv=coverUv(vUv);float t=uTime*uMotion;float grass=1.0-smoothstep(.30,.58,uv.y);float edges=smoothstep(.42,.9,abs(uv.x-.5)*2.0);float trees=edges*smoothstep(.22,.42,uv.y)*(1.0-smoothstep(.80,1.0,uv.y));float breeze=sin(uv.y*31.0+uv.x*12.0+t*.55)+.45*sin(uv.x*39.0-t*.34);uv.x+=grass*breeze*.0019;uv.x+=trees*sin(uv.y*18.0+t*.38)*.0011;float wx=smoothstep(.43,.50,uv.x)*(1.0-smoothstep(.86,.94,uv.x));float wy=smoothstep(.15,.22,uv.y)*(1.0-smoothstep(.47,.53,uv.y));float water=wx*wy;uv.x+=water*sin(uv.y*95.0+t*1.15)*.0014;vec3 color=texture2D(uTexture,clamp(uv,0.0,1.0)).rgb;float glint=water*max(0.0,sin(uv.x*145.0+uv.y*65.0-t*1.6))*.035;color+=vec3(.72,.87,.96)*glint;gl_FragColor=vec4(color,1.0);}`;
+      const compile = (type,source) => { const shader = gl.createShader(type); gl.shaderSource(shader,source); gl.compileShader(shader); return shader; };
+      const program = gl.createProgram(); gl.attachShader(program,compile(gl.VERTEX_SHADER,vertexSource)); gl.attachShader(program,compile(gl.FRAGMENT_SHADER,fragmentSource)); gl.linkProgram(program); gl.useProgram(program);
+      const buffer = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,buffer); gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
+      const position = gl.getAttribLocation(program,'aPosition'); gl.enableVertexAttribArray(position); gl.vertexAttribPointer(position,2,gl.FLOAT,false,0,0);
+      const texture = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D,texture); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+      const image = new Image(); image.src = '/assets/meadow-hub.webp';
+      image.onload = () => {
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true); gl.texImage2D(gl.TEXTURE_2D,0,gl.RGB,gl.RGB,gl.UNSIGNED_BYTE,image); gl.uniform1f(gl.getUniformLocation(program,'uImageAspect'),image.width/image.height);
+        const resize = () => { const dpr=Math.min(window.devicePixelRatio||1,1.5); canvas.width=Math.round(innerWidth*dpr); canvas.height=Math.round(innerHeight*dpr); gl.viewport(0,0,canvas.width,canvas.height); gl.uniform2f(gl.getUniformLocation(program,'uResolution'),canvas.width,canvas.height); };
+        resize(); addEventListener('resize',resize,{passive:true}); const start=performance.now();
+        const draw = (time) => { gl.uniform1f(gl.getUniformLocation(program,'uTime'),(time-start)/1000); gl.uniform1f(gl.getUniformLocation(program,'uMotion'),motionEnabled?1:0); gl.drawArrays(gl.TRIANGLES,0,6); requestAnimationFrame(draw); }; requestAnimationFrame(draw);
+      };
+    };
+    initMeadow();
     document.addEventListener('keydown', (event) => {
-      if (dashboard.hidden || ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
-      if (/^[1-5]$/.test(event.key)) renderDay(weekdayKeys[Number(event.key) - 1]);
-      if (event.code === 'Space') { event.preventDefault(); toggleTimer(); }
-      if (event.key.toLowerCase() === 'l') { sessionStorage.removeItem(SESSION_KEY); setLocked(true); }
+      if (dashboard.hidden || ['INPUT','TEXTAREA'].includes(document.activeElement?.tagName) || budgetDialog.open) return;
+      if (/^[1-5]$/.test(event.key)) renderDay(weekdayKeys[Number(event.key)-1]); if (event.code === 'Space') { event.preventDefault(); toggleTimer(); } if (event.key.toLowerCase()==='m') soundOn?stopSound():startSound(); if (event.key.toLowerCase()==='l') { sessionStorage.removeItem(SESSION_KEY); setLocked(true); }
     });
-
     setLocked(sessionStorage.getItem(SESSION_KEY) !== 'true');
   </script>
 </Layout>
 
 <style>
-  :global(.hub-body) { overflow: hidden; }
-  :global(.hub-body *) { box-sizing: border-box; }
-  [hidden] { display: none !important; }
-  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-  button, input { font: inherit; }
-  button, a { -webkit-tap-highlight-color: transparent; }
-  .hub-shell { min-height: 100svh; color: #e4e4e7; }
-  .eyebrow { margin: 0; color: #71717a; font-size: .68rem; font-weight: 700; letter-spacing: .18em; }
-  .blink { animation: blink 1.05s steps(1) infinite; }
-  @keyframes blink { 50% { opacity: 0; } }
-
-  .pin-gate { display: grid; place-content: center; min-height: 100svh; padding: 2rem; }
-  .gate-mark { margin-bottom: 2rem; color: #52525b; text-align: center; font-size: .7rem; letter-spacing: .18em; }
-  .gate-panel { width: min(92vw, 34rem); padding: 2.25rem; }
-  .gate-panel h1 { margin: .7rem 0 .5rem; color: #fafafa; font-size: clamp(1.7rem, 5vw, 2.7rem); letter-spacing: -.055em; }
-  .gate-copy { margin: 0 0 1.7rem; color: #a1a1aa; font-size: .8rem; line-height: 1.6; }
-  .pin-form { display: grid; grid-template-columns: 1fr auto; gap: .65rem; }
-  .pin-form input { min-width: 0; padding: .85rem 1rem; border: 1px solid #52525b; outline: 0; background: #050505; color: #fff; font-size: 1.15rem; letter-spacing: .35em; }
-  .pin-form input:focus { border-color: #e4e4e7; box-shadow: 0 0 0 1px #e4e4e7; }
-  .pin-form button, .primary-action { padding: .85rem 1rem; border: 1px solid #e4e4e7; background: #e4e4e7; color: #09090b; font-size: .7rem; font-weight: 800; letter-spacing: .08em; text-decoration: none; cursor: pointer; }
-  .pin-form button:hover, .primary-action:hover { background: #fff; }
-  .gate-error { min-height: 1rem; margin: .8rem 0 0; color: #f87171; font-size: .68rem; letter-spacing: .1em; }
-  .gate-note { margin-top: 1.5rem; color: #3f3f46; text-align: center; font-size: .58rem; letter-spacing: .14em; }
-
-  .dashboard { display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; gap: .65rem; width: min(100% - 2rem, 94rem); height: 100svh; margin: 0 auto; padding: .8rem 0 .65rem; }
-  .hub-header { display: flex; align-items: flex-end; justify-content: space-between; min-height: 3.3rem; }
-  .hub-header h1 { margin: .1rem 0 0; color: #fafafa; font-size: clamp(1.35rem, 2.2vw, 2rem); line-height: 1; letter-spacing: -.05em; }
-  .header-status { display: flex; align-items: center; gap: 1rem; color: #71717a; font-size: .62rem; letter-spacing: .1em; }
-  .status-live { color: #a1a1aa; }
-  .status-live i { display: inline-block; width: .42rem; height: .42rem; margin-right: .3rem; border-radius: 50%; background: #4ade80; box-shadow: 0 0 8px rgba(74, 222, 128, .6); }
-  .text-button { padding: 0; border: 0; background: none; color: #a1a1aa; font-size: .62rem; letter-spacing: .12em; cursor: pointer; }
-  .text-button:hover { color: #fff; }
-  .day-nav { display: flex; align-items: center; justify-content: space-between; padding: .4rem .6rem; border-block: 1px solid #27272a; color: #52525b; font-size: .6rem; letter-spacing: .14em; }
-  .day-nav div { display: flex; gap: .2rem; }
-  .day-nav button { min-width: 2.65rem; padding: .28rem .5rem; border: 0; background: none; color: #71717a; font-size: .62rem; cursor: pointer; }
-  .day-nav button:hover { color: #e4e4e7; }
-  .day-nav button.active { background: #e4e4e7; color: #09090b; font-weight: 800; }
-
-  .hub-grid { display: grid; grid-template-columns: minmax(17rem, .88fr) minmax(24rem, 1.2fr) minmax(18rem, .9fr); gap: .75rem; min-height: 0; padding-top: .35rem; }
-  .hub-grid > *, .right-stack > * { min-height: 0; }
-  .focus-panel, .schedule-panel, .queue-panel, .goals-panel, .admin-panel { padding: 1.15rem; }
-  .focus-panel { display: flex; flex-direction: column; }
-  .focus-meta { display: flex; justify-content: space-between; margin-bottom: auto; color: #71717a; font-size: .62rem; letter-spacing: .11em; }
-  .focus-meta span:first-child { color: #e4e4e7; }
-  .focus-panel h2 { max-width: 11ch; margin: 1rem 0 .55rem; color: #fafafa; font-size: clamp(1.5rem, 2.3vw, 2.4rem); line-height: .95; letter-spacing: -.06em; }
-  .focus-panel > p { margin: 0 0 1rem; color: #a1a1aa; font-size: .73rem; line-height: 1.55; }
-  .primary-action { display: block; margin-bottom: 1rem; text-align: center; }
-  .timer { display: flex; align-items: flex-end; justify-content: space-between; padding-top: .85rem; border-top: 1px dashed #3f3f46; }
-  .timer-label { display: block; margin-bottom: .15rem; color: #52525b; font-size: .58rem; letter-spacing: .15em; }
-  .timer strong { color: #fafafa; font-size: clamp(1.5rem, 2.2vw, 2.2rem); font-weight: 500; letter-spacing: -.06em; }
-  .timer-actions { display: flex; gap: .35rem; }
-  .timer-actions button { padding: .38rem .5rem; border: 1px solid #3f3f46; background: #09090b; color: #a1a1aa; font-size: .56rem; cursor: pointer; }
-  .timer-actions button:hover { border-color: #a1a1aa; color: #fff; }
-  .quick-links { display: flex; justify-content: space-between; margin-top: auto; padding-top: 1rem; }
-  .quick-links a { color: #71717a; font-size: .58rem; letter-spacing: .08em; text-decoration: none; }
-  .quick-links a:hover { color: #fff; }
-
-  .schedule-panel { display: grid; grid-template-rows: auto minmax(0, 1fr); }
-  .panel-heading { display: flex; align-items: start; justify-content: space-between; padding-bottom: .7rem; border-bottom: 1px dashed #3f3f46; }
-  .panel-heading span { display: block; color: #71717a; font-size: .58rem; letter-spacing: .14em; }
-  .panel-heading strong { display: block; margin-top: .2rem; color: #e4e4e7; font-size: .85rem; }
-  .timeline { display: grid; align-content: stretch; min-height: 0; padding-top: .3rem; }
-  .timeline-row { display: grid; grid-template-columns: 2.9rem .55rem minmax(0, 1fr); align-items: center; gap: .55rem; min-height: 0; border-bottom: 1px solid #18181b; }
-  .timeline-row:last-child { border-bottom: 0; }
-  .timeline-row time { color: #71717a; font-size: .62rem; }
-  .timeline-row i { position: relative; width: .42rem; height: .42rem; border: 1px solid #52525b; border-radius: 50%; }
-  .timeline-row i::after { content: ''; position: absolute; top: .5rem; left: calc(50% - .5px); width: 1px; height: 3rem; background: #27272a; }
-  .timeline-row:last-child i::after { display: none; }
-  .timeline-row.current i { border-color: #e4e4e7; background: #e4e4e7; box-shadow: 0 0 10px rgba(255,255,255,.18); }
-  .timeline-row strong { display: block; overflow: hidden; color: #d4d4d8; font-size: clamp(.66rem, .8vw, .78rem); font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
-  .timeline-row span { display: block; margin-top: .12rem; color: #52525b; font-size: .52rem; letter-spacing: .1em; }
-
-  .right-stack { display: grid; grid-template-rows: 1.55fr .85fr .68fr; gap: .75rem; }
-  .queue-panel { overflow: hidden; }
-  .queue-head { display: flex; justify-content: space-between; padding-bottom: .5rem; color: #71717a; font-size: .57rem; letter-spacing: .13em; }
-  .check-list { display: grid; }
-  .check-list label { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: .55rem; min-height: 2.45rem; border-top: 1px solid #27272a; cursor: pointer; }
-  .check-list input { appearance: none; width: .82rem; height: .82rem; border: 1px solid #71717a; background: #000; }
-  .check-list input:checked { background: #e4e4e7; box-shadow: inset 0 0 0 2px #000; }
-  .check-list input:checked + span { color: #52525b; text-decoration: line-through; }
-  .check-list span { overflow: hidden; color: #a1a1aa; font-size: .63rem; text-overflow: ellipsis; white-space: nowrap; }
-  .check-list b { color: #e4e4e7; font-weight: 700; }
-  .check-list em { color: #52525b; font-size: .5rem; font-style: normal; letter-spacing: .1em; }
-  .goals-panel { display: grid; align-content: center; gap: .55rem; }
-  .goal-row { display: grid; grid-template-columns: 1fr auto 2rem; align-items: center; gap: .6rem; color: #a1a1aa; font-size: .58rem; letter-spacing: .08em; }
-  .goal-row em { color: #52525b; text-align: right; font-size: .5rem; font-style: normal; }
-  .goal-dots { display: flex; gap: .28rem; }
-  .goal-dots button { width: .72rem; height: .72rem; padding: 0; border: 1px solid #52525b; background: #000; cursor: pointer; }
-  .goal-dots button.done { background: #e4e4e7; box-shadow: inset 0 0 0 2px #000; }
-  .admin-panel { display: grid; align-content: center; gap: .42rem; }
-  .admin-panel div { display: flex; justify-content: space-between; color: #71717a; font-size: .54rem; letter-spacing: .08em; }
-  .admin-panel b { color: #d4d4d8; font-weight: 600; }
-  .admin-panel .muted { color: #52525b; }
-  .hub-footer { display: flex; justify-content: space-between; color: #3f3f46; font-size: .52rem; letter-spacing: .09em; }
-  kbd { padding: .05rem .24rem; border: 1px solid #3f3f46; color: #71717a; font: inherit; }
-
-  @media (max-width: 980px) {
-    :global(.hub-body) { overflow: auto; }
-    .dashboard { height: auto; min-height: 100svh; }
-    .hub-grid { grid-template-columns: 1fr 1fr; }
-    .right-stack { grid-column: 1 / -1; grid-template-columns: 1.2fr 1fr 1fr; grid-template-rows: none; }
-  }
-  @media (max-width: 680px) {
-    .dashboard { width: min(100% - 1rem, 94rem); padding-top: .55rem; }
-    .header-status > span:first-child, .status-live, .hub-footer span:first-child { display: none; }
-    .day-nav > span { display: none; }
-    .day-nav { justify-content: center; }
-    .hub-grid, .right-stack { grid-template-columns: 1fr; }
-    .right-stack { grid-column: auto; grid-template-rows: auto; }
-    .focus-panel, .schedule-panel, .queue-panel, .goals-panel, .admin-panel { min-height: 20rem; }
-    .queue-panel, .goals-panel, .admin-panel { min-height: auto; }
-    .schedule-panel { min-height: 29rem; }
-    .pin-form { grid-template-columns: 1fr; }
-    .gate-panel { padding: 1.6rem; }
-  }
+  :global(.hub-body) { overflow:hidden; background:#9bc6d1; font-family:"Avenir Next",Avenir,"Segoe UI",sans-serif; }
+  :global(.hub-body *) { box-sizing:border-box; }
+  [hidden] { display:none !important; } button,input { font:inherit; } button,a { -webkit-tap-highlight-color:transparent; }
+  .sr-only { position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0; }
+  .meadow-app { position:relative;min-height:100svh;overflow:hidden;color:#203126;background:#9bc6d1; }
+  .meadow-fallback,.meadow-canvas { position:absolute;inset:0;width:100%;height:100%; }
+  .meadow-fallback { background:url('/assets/meadow-hub.webp') center/cover no-repeat; }
+  .meadow-canvas { z-index:1; }
+  .sun-wash { position:absolute;z-index:2;inset:0;background:radial-gradient(circle at 34% 12%,rgba(255,250,211,.22),transparent 34%),linear-gradient(180deg,transparent 48%,rgba(18,54,32,.12));pointer-events:none; }
+  .water-light { position:absolute;z-index:2;left:49%;bottom:17%;width:39%;height:16%;border-radius:50%;background:repeating-linear-gradient(170deg,transparent 0 9px,rgba(226,248,255,.12) 10px 11px,transparent 12px 18px);filter:blur(1.5px);mix-blend-mode:screen;opacity:.75;animation:water-breathe 6s ease-in-out infinite alternate;pointer-events:none; }
+  @keyframes water-breathe { to { transform:translateX(1.2%) scaleX(1.02);opacity:.45; } }
+  .floating-board { border:1px solid rgba(255,255,255,.68);background:linear-gradient(145deg,rgba(254,251,239,.91),rgba(241,239,220,.84));box-shadow:0 18px 55px rgba(29,50,33,.18),inset 0 1px rgba(255,255,255,.75);backdrop-filter:blur(18px) saturate(.72); }
+  .pin-gate { position:relative;z-index:5;display:grid;min-height:100svh;place-items:center;padding:1rem; }
+  .gate-card { width:min(92vw,27rem);padding:2.4rem;border-radius:1.65rem;text-align:center;transform:translateY(-2vh); }
+  .gate-leaf { width:3rem;height:3rem;margin:0 auto 1rem;border-radius:50%;background:rgba(54,96,57,.1);color:#3e6843;font:2.1rem/2.7rem Georgia,serif; }
+  .kicker { margin:0;color:#70806f;font-size:.62rem;font-weight:700;letter-spacing:.18em; }
+  .gate-card h1 { margin:.55rem 0 .35rem;color:#263b2a;font:500 clamp(2.2rem,5vw,3rem)/1 Georgia,serif;letter-spacing:-.05em; }
+  .gate-copy { margin:0 0 1.55rem;color:#718072;font-size:.84rem; }
+  .pin-form { display:grid;grid-template-columns:1fr auto;gap:.55rem; }
+  .pin-form input { min-width:0;padding:.84rem 1rem;border:1px solid rgba(50,80,52,.22);border-radius:.85rem;outline:none;background:rgba(255,255,255,.65);color:#233628;font-size:1rem;letter-spacing:.36em; }
+  .pin-form input:focus { border-color:#5f8262;box-shadow:0 0 0 3px rgba(95,130,98,.12); }
+  .pin-form button,.save-budget { padding:.8rem 1rem;border:0;border-radius:.85rem;background:#33573c;color:#fbf8eb;font-size:.72rem;font-weight:700;cursor:pointer; }
+  .pin-form button:hover,.save-budget:hover { background:#294b32; }
+  .gate-error { min-height:1rem;margin:.75rem 0 0;color:#9c493f;font-size:.72rem; }
+  .dashboard { position:relative;z-index:5;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:.65rem;width:min(100% - 1.4rem,92rem);height:100svh;margin:0 auto;padding:.7rem 0; }
+  .top-bar { display:grid;grid-template-columns:1fr auto 1fr;align-items:center;min-height:3.2rem;padding:.45rem .65rem;border-radius:1.2rem; }
+  .brand-lockup { display:flex;align-items:center;gap:.55rem; }
+  .brand-mark { display:grid;width:2.05rem;height:2.05rem;place-items:center;border-radius:50%;background:#3e6843;color:#f7f2dd;font:1.45rem/1 Georgia,serif; }
+  .brand-lockup strong { display:block;color:#2e4432;font:600 .9rem/1.05 Georgia,serif; }
+  .brand-lockup div span { display:block;margin-top:.18rem;color:#7a8778;font-size:.52rem; }
+  .welcome-line { margin:0;color:#657364;font:italic .78rem Georgia,serif; }
+  .environment-controls { display:flex;justify-content:flex-end;gap:.25rem; }
+  .environment-controls button { display:flex;align-items:center;gap:.35rem;padding:.48rem .62rem;border:0;border-radius:.7rem;background:transparent;color:#657364;font-size:.58rem;cursor:pointer; }
+  .environment-controls button:hover,.environment-controls button[aria-pressed="true"] { background:rgba(54,88,59,.09);color:#314d36; }
+  .sound-dot { width:.42rem;height:.42rem;border-radius:50%;border:1px solid currentColor; }
+  [data-sound][aria-pressed="true"] .sound-dot { background:#507b54;box-shadow:0 0 0 3px rgba(80,123,84,.1); }
+  .motion-mark { font-size:.9rem;font-style:normal;line-height:.5; }
+  .board-grid { display:grid;grid-template-columns:minmax(15rem,.83fr) minmax(23rem,1.25fr) minmax(16rem,.9fr);gap:.72rem;min-height:0;perspective:1200px; }
+  .board-column { display:grid;gap:.72rem;min-height:0; }
+  .left-column { grid-template-rows:1.55fr .75fr; }.center-column { grid-template-rows:1.3fr .72fr; }.right-column { grid-template-rows:1fr 1fr; }
+  .board-column>article { min-height:0;padding:1rem;border-radius:1.35rem;overflow:hidden;transition:transform .35s ease,box-shadow .35s ease; }
+  .board-column>article:hover { transform:translateY(-3px);box-shadow:0 24px 65px rgba(25,47,30,.22),inset 0 1px rgba(255,255,255,.8); }
+  .left-column>article:first-child { transform:rotate(-.25deg); }.right-column>article:first-child { transform:rotate(.2deg); }
+  .left-column>article:first-child:hover,.right-column>article:first-child:hover { transform:translateY(-3px) rotate(0); }
+  .board-heading { display:flex;align-items:center;justify-content:space-between;gap:.6rem; }
+  .board-heading>div { display:flex;align-items:center;gap:.5rem; }
+  .board-number { display:grid;width:1.45rem;height:1.45rem;place-items:center;border-radius:50%;background:rgba(55,91,59,.09);color:#527057;font-size:.48rem;font-weight:800; }
+  .board-heading p { margin:0;color:#6f7b6e;font-size:.54rem;font-weight:800;letter-spacing:.13em; }
+  .board-heading>strong { color:#49634d;font-size:.56rem;font-weight:700; }.board-heading.compact .board-number { width:1.25rem;height:1.25rem; }.board-heading.compact p { font-size:.5rem; }
+  .goals-board { display:flex;flex-direction:column; }.goals-board h2 { margin:.7rem 0 .45rem;color:#2c4230;font:500 clamp(1.35rem,1.8vw,1.85rem)/1 Georgia,serif;letter-spacing:-.035em; }
+  .goal-list { display:grid;margin-top:auto; }.goal-list label { display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:.65rem;padding:.62rem 0;border-bottom:1px solid rgba(54,82,55,.1);cursor:pointer; }.goal-list label:last-child { border-bottom:0; }
+  .goal-list input { appearance:none;width:1.05rem;height:1.05rem;border:1px solid rgba(48,79,51,.34);border-radius:50%;background:rgba(255,255,255,.5); }.goal-list input:checked { border-color:#416b46;background:#416b46;box-shadow:inset 0 0 0 3px #edf0df; }.goal-list input:checked+span { opacity:.52; }.goal-list input:checked+span b { text-decoration:line-through; }
+  .goal-list b,.goal-list small { display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }.goal-list b { color:#354a38;font-size:.7rem;font-weight:650; }.goal-list small { margin-top:.15rem;color:#839080;font-size:.55rem; }
+  .goal-progress { height:.28rem;margin-top:auto;overflow:hidden;border-radius:1rem;background:rgba(60,91,62,.1); }.goal-progress i { display:block;width:0;height:100%;border-radius:inherit;background:#4f7753;transition:width .4s ease; }
+  .rhythm-board { display:flex;flex-direction:column;justify-content:space-between; }.rhythm-days { display:grid;grid-template-columns:repeat(5,1fr);gap:.28rem;margin:.4rem 0; }
+  .rhythm-days button { display:grid;min-width:0;gap:.08rem;padding:.35rem .1rem;border:0;border-radius:.65rem;background:rgba(70,103,70,.06);color:#758273;cursor:pointer; }.rhythm-days button:hover { background:rgba(70,103,70,.11); }.rhythm-days button.active { background:#416b46;color:#f8f4e4;box-shadow:0 5px 14px rgba(45,75,49,.18); }.rhythm-days span { font:600 .74rem Georgia,serif; }.rhythm-days small { font-size:.43rem; }.rhythm-note { margin:0;color:#788476;font:italic .58rem/1.45 Georgia,serif; }
+  .focus-board { display:flex;flex-direction:column;background:linear-gradient(145deg,rgba(252,249,235,.95),rgba(231,236,212,.88)); }.focus-window { padding:.32rem .5rem;border-radius:.55rem;background:rgba(57,91,60,.08);color:#5a745d;font-size:.55rem;font-weight:700; }.focus-copy { margin:auto 0; }
+  .focus-copy>p { margin:0 0 .35rem;color:#648067;font-size:.55rem;font-weight:800;letter-spacing:.11em; }.focus-copy h1 { max-width:13ch;margin:0 0 .42rem;color:#263d2b;font:500 clamp(1.7rem,3vw,2.8rem)/.94 Georgia,serif;letter-spacing:-.06em; }.focus-copy>span { display:block;max-width:43rem;color:#718071;font-size:.65rem;line-height:1.5; }
+  .focus-actions { display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.55rem; }.start-work { display:flex;align-items:center;justify-content:space-between;padding:.75rem .9rem;border-radius:.9rem;background:#33593c;color:#fbf8e9;font-size:.68rem;font-weight:750;text-decoration:none;box-shadow:0 9px 22px rgba(43,83,49,.2); }.start-work:hover { background:#294d32; }.start-work i { font:normal 1rem Georgia,serif; }
+  .timer { display:flex;align-items:center;gap:.45rem;padding:.4rem .45rem .4rem .65rem;border:1px solid rgba(51,88,59,.12);border-radius:.9rem;background:rgba(255,255,255,.38); }.timer small,.timer strong { display:block; }.timer small { color:#899285;font-size:.42rem;letter-spacing:.1em; }.timer strong { color:#344b38;font-size:.9rem;font-weight:600; }.timer button { padding:.45rem .58rem;border:0;border-radius:.6rem;background:rgba(53,90,59,.1);color:#3c6141;font-size:.54rem;font-weight:700;cursor:pointer; }.timer .timer-reset { padding-inline:.42rem;font-size:.75rem; }
+  .schedule-board { display:grid;grid-template-rows:auto minmax(0,1fr); }.schedule-track { display:grid;grid-template-columns:repeat(6,1fr);align-items:center;gap:.25rem;min-height:0;margin-top:.45rem; }
+  .schedule-stop { position:relative;display:grid;align-content:center;min-width:0;height:100%;padding-top:.65rem;border-top:1px solid rgba(58,88,59,.17); }.schedule-stop::before { content:'';position:absolute;top:-.22rem;left:0;width:.42rem;height:.42rem;border:2px solid #ebeddc;border-radius:50%;background:#89a28a; }.schedule-stop.current::before { background:#3e6c45;box-shadow:0 0 0 4px rgba(62,108,69,.1); }.schedule-stop time { color:#80907f;font-size:.45rem; }.schedule-stop span { overflow:hidden;margin-top:.18rem;color:#354b38;font-size:.58rem;font-weight:650;text-overflow:ellipsis;white-space:nowrap; }
+  .budget-board { display:flex;flex-direction:column; }.edit-button { padding:.28rem .5rem;border:1px solid rgba(49,80,53,.14);border-radius:.55rem;background:rgba(255,255,255,.35);color:#58705a;font-size:.5rem;cursor:pointer; }
+  .budget-hero { margin:auto 0; }.budget-hero small { display:block;color:#829080;font-size:.48rem;font-weight:750;letter-spacing:.11em; }.budget-hero strong { display:block;margin:.16rem 0;color:#2b432f;font:500 clamp(1.8rem,2.5vw,2.5rem)/1 Georgia,serif;letter-spacing:-.05em; }.budget-hero span { color:#778576;font:italic .57rem Georgia,serif; }
+  .budget-meter { height:.3rem;overflow:hidden;border-radius:1rem;background:rgba(58,91,61,.1); }.budget-meter i { display:block;width:0;height:100%;background:linear-gradient(90deg,#5d8a61,#d0a963);transition:width .4s ease; }.budget-breakdown { display:grid;grid-template-columns:1fr 1fr;gap:.45rem;margin-top:.55rem; }.budget-breakdown div { padding:.48rem .52rem;border-radius:.65rem;background:rgba(255,255,255,.3); }.budget-breakdown span,.budget-breakdown b { display:block; }.budget-breakdown span { color:#879184;font-size:.45rem; }.budget-breakdown b { margin-top:.1rem;color:#3b523e;font-size:.66rem; }.privacy-note { margin:.45rem 0 0;color:#9aa296;font-size:.44rem;text-align:center; }
+  .launch-board { display:flex;flex-direction:column; }.course-links { display:grid;align-content:stretch;height:100%;margin-top:.35rem; }.course-links a { display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:.5rem;min-height:0;padding:.34rem 0;border-bottom:1px solid rgba(53,82,55,.1);color:inherit;text-decoration:none; }.course-links a:last-child { border-bottom:0; }.course-links a:hover b { color:#2b6940; }.course-links i { display:grid;width:1.55rem;height:1.55rem;place-items:center;border-radius:.5rem;background:rgba(58,96,62,.09);color:#507254;font-size:.48rem;font-style:normal;font-weight:800; }.course-links b,.course-links small { display:block; }.course-links b { color:#344a37;font-size:.59rem; }.course-links small { margin-top:.07rem;color:#8a9588;font-size:.46rem; }.course-links em { color:#8b9688;font:normal .75rem Georgia,serif; }
+  .quick-dock { display:flex;align-items:center;justify-content:center;gap:.25rem;min-height:2.65rem;padding:.35rem .55rem;border-radius:1rem; }.quick-dock>span { margin-right:.2rem;color:#909a8d;font-size:.46rem;font-weight:800;letter-spacing:.13em; }.quick-dock a { padding:.46rem .65rem;border-radius:.6rem;color:#516753;font-size:.55rem;font-weight:650;text-decoration:none; }.quick-dock a:hover { background:rgba(53,89,58,.08);color:#2f5736; }.quick-dock i { margin-left:.15rem;font-style:normal; }.quick-dock small { margin-left:auto;color:#9ca39a;font-size:.44rem; }
+  .budget-dialog { width:min(92vw,27rem);padding:0;border:1px solid rgba(255,255,255,.7);border-radius:1.35rem;outline:0;background:rgba(249,247,233,.96);color:#2c4230;box-shadow:0 30px 100px rgba(17,37,22,.35); }.budget-dialog::backdrop { background:rgba(21,43,27,.35);backdrop-filter:blur(6px); }.budget-dialog form { display:grid;gap:.9rem;padding:1.4rem; }.budget-dialog header { display:flex;align-items:start;justify-content:space-between; }.budget-dialog header p { margin:0;color:#798577;font-size:.5rem;font-weight:800;letter-spacing:.13em; }.budget-dialog h2 { margin:.2rem 0 0;font:500 1.45rem Georgia,serif; }.budget-dialog header button { border:0;background:transparent;color:#718071;font-size:1.3rem;cursor:pointer; }.budget-dialog label { display:grid;gap:.32rem;color:#60705f;font-size:.65rem; }.budget-dialog label span { display:flex;align-items:center;padding:.1rem .7rem;border:1px solid rgba(50,79,52,.15);border-radius:.75rem;background:#fff; }.budget-dialog label b { color:#718071; }.budget-dialog input { width:100%;padding:.65rem .4rem;border:0;outline:0;color:#2c4230; }.budget-dialog form>p { margin:0;color:#8c968a;font-size:.53rem; }
+  :global(.motion-paused) .water-light { animation-play-state:paused; }
+  @media (prefers-reduced-motion:reduce) { .water-light,.floating-board { animation:none !important;transition:none !important; } }
+  @media (max-width:1050px) { :global(.hub-body) { overflow:auto; }.meadow-app { overflow:auto; }.meadow-canvas,.meadow-fallback,.sun-wash { position:fixed; }.dashboard { width:min(100% - 1rem,58rem);height:auto;min-height:100svh; }.board-grid { grid-template-columns:1fr 1fr; }.center-column { grid-column:1/-1;grid-row:1;grid-template-columns:1.2fr 1fr;grid-template-rows:none; }.left-column,.right-column { grid-template-rows:auto auto; }.board-column>article { min-height:16rem; } }
+  @media (max-width:680px) { .dashboard { padding:.45rem 0; }.top-bar { grid-template-columns:1fr auto; }.welcome-line,.environment-controls button span,.quick-dock>span,.quick-dock small { display:none; }.environment-controls button { min-width:2rem;justify-content:center; }.board-grid,.center-column { grid-template-columns:1fr; }.center-column { grid-column:auto;grid-row:auto;grid-template-rows:auto auto; }.board-column>article { min-height:18rem; }.schedule-board { min-height:12rem !important; }.focus-actions { grid-template-columns:1fr; }.schedule-track { overflow-x:auto; }.schedule-stop { min-width:4.5rem; }.quick-dock { justify-content:space-around; }.quick-dock a { padding-inline:.3rem;font-size:.48rem; }.pin-form { grid-template-columns:1fr; } }
 </style>
