@@ -1,18 +1,17 @@
-<section class="three-body-section">
+<section class="three-body-section" aria-labelledby="three-body-title">
   <div class="three-body-header">
-    <p class="three-body-label">[simulation]</p>
-    <h2 class="three-body-title">Three bodies, one unstable archive.</h2>
+    <p class="three-body-label">06 / ORBIT</p>
+    <h2 id="three-body-title" class="three-body-title">Three ideas.<br />One unstable orbit.</h2>
     <p class="three-body-copy">
-      A small ASCII study in motion: finance, law, and systems thinking orbiting the same center
-      without settling into one clean line. Your cursor has mass here — drag it through the field,
-      or click to perturb the system.
+      Finance, law, and systems thinking rarely sit still. This small three-body study keeps them
+      in motion. Move through the field to change its gravity; click anywhere to disturb the orbit.
     </p>
   </div>
 
-  <div id="three-body-frame" class="three-body-frame" data-title="orbital-map">
-    <pre id="three-body-ascii" class="three-body-ascii" aria-label="Animated ASCII three body simulation"></pre>
+  <div id="three-body-frame" class="three-body-frame">
+    <pre id="three-body-ascii" class="three-body-ascii" aria-label="Interactive ASCII three-body simulation"></pre>
     <div class="three-body-overlay" aria-hidden="true">
-      <span id="three-body-status">timestep: live / gravity: yours</span>
+      <span id="three-body-status">live / gravity: yours</span>
     </div>
   </div>
 </section>
@@ -25,19 +24,15 @@
   if (output instanceof HTMLPreElement && frameEl instanceof HTMLDivElement) {
     const cols = 74;
     const rows = 26;
-    // Monospace cells are ~1.9x taller than wide; simulate in square space
-    // and divide y by ASPECT when plotting so orbits render round.
     const ASPECT = 1.9;
     const W = cols;
     const H = rows * ASPECT;
     const center = { x: W / 2, y: H / 2 };
-
     const chars = ['.', ':', '*'];
     const labels = ['FIN', 'LAW', 'SYS'];
-
     const G = 320;
-    const SOFT2 = 22; // gravity softening, keeps close encounters finite
-    const SPRING_R = 17; // beyond this radius, pull back toward center
+    const SOFT2 = 22;
+    const SPRING_R = 17;
     const SPRING_K = 0.9;
     const VMAX = 15;
     const MOUSE_G = 900;
@@ -62,7 +57,7 @@
       clearTimeout(statusTimer);
       statusEl.textContent = text;
       statusTimer = setTimeout(() => {
-        statusEl.textContent = 'timestep: live / gravity: yours';
+        statusEl.textContent = 'live / gravity: yours';
       }, 2000);
     };
 
@@ -94,7 +89,7 @@
         body.vx += (dx / dist) * (90 / dist);
         body.vy += (dy / dist) * (90 / dist);
       });
-      flashStatus('+perturbation injected');
+      flashStatus('+ perturbation');
     });
 
     frameEl.addEventListener(
@@ -164,32 +159,24 @@
     const plot = (grid: string[][], x: number, y: number, value: string) => {
       const ix = Math.round(x);
       const iy = Math.round(y / ASPECT);
-      if (ix >= 0 && ix < cols && iy >= 0 && iy < rows) {
-        grid[iy][ix] = value;
-      }
+      if (ix >= 0 && ix < cols && iy >= 0 && iy < rows) grid[iy][ix] = value;
     };
 
     const render = () => {
       const grid = Array.from({ length: rows }, () => Array.from({ length: cols }, () => ' '));
 
       for (let x = 0; x < cols; x += 6) {
-        for (let y = 0; y < rows; y += 3) {
-          grid[y][x] = '.';
-        }
+        for (let y = 0; y < rows; y += 3) grid[y][x] = '·';
       }
 
       plot(grid, center.x, center.y, '+');
-
-      if (mouse.active) {
-        plot(grid, mouse.x, mouse.y, 'x');
-      }
+      if (mouse.active) plot(grid, mouse.x, mouse.y, '×');
 
       bodies.forEach((body, index) => {
         body.trail.push({ x: body.x, y: body.y });
         while (body.trail.length > 26) body.trail.shift();
-
         body.trail.forEach((point, pointIndex) => {
-          const mark = pointIndex > body.trail.length - 7 ? chars[index] : '.';
+          const mark = pointIndex > body.trail.length - 7 ? chars[index] : '·';
           plot(grid, point.x, point.y, mark);
         });
       });
@@ -205,22 +192,16 @@
         }
       });
 
-      const frame = [
-        '+------------------------------------------------------------------------+',
-        '|  ASCII N-BODY SIM          gravity: newtonian         palette: 1-bit   |',
-        '+------------------------------------------------------------------------+',
-        ...grid.map((row) => `|${row.join('')}|`),
-        '+------------------------------------------------------------------------+',
-        '|  legend: FIN = capital flows  LAW = institutions  SYS = feedback loops |',
-        '+------------------------------------------------------------------------+',
-      ];
-
-      output.textContent = frame.join('\n');
+      output.textContent = [
+        '┌──────────────────────────────────────────────────────────────────────────┐',
+        ...grid.map((row) => `│${row.join('')}│`),
+        '└──────────────────────────────────────────────────────────────────────────┘',
+        '  FIN capital       LAW institutions       SYS feedback',
+      ].join('\n');
     };
 
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let visible = true;
-
     new IntersectionObserver((entries) => {
       visible = entries[0]?.isIntersecting ?? true;
     }).observe(frameEl);

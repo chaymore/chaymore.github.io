@@ -1,212 +1,216 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import Nav from '../components/Nav.astro';
 import ThreeBodySimulation from '../components/ThreeBodySimulation.astro';
-import { competitions, essays, pageLinks, projects, research, site } from '../data/site';
+import { competitions, essays, projects, research, site } from '../data/site';
 
-const count = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
-
-const highlights = [
-  {
-    title: 'Competitions',
-    description: 'Case work, pressure-tested thinking, and competitive problem solving.',
-    href: '/competitions',
-    count: count(competitions.length, 'entry').replace('entrys', 'entries'),
-  },
-  {
-    title: 'Research',
-    description: 'Questions, papers, and longer-form investigation.',
-    href: '/research',
-    count: count(research.length, 'item'),
-  },
-  {
-    title: 'Writing',
-    description: 'Essays and notes on technology, institutions, and the future.',
-    href: '/writing',
-    count: count(essays.length, 'post'),
-  },
-  {
-    title: 'Projects',
-    description: 'Technical work, experiments, and systems I am building.',
-    href: '/projects',
-    count: projects.length > 0 ? count(projects.length, 'project') : 'In progress',
-  },
+const sections = [
+  { number: '01', label: 'Now', href: '#now' },
+  { number: '02', label: 'Question', href: '#question' },
+  { number: '03', label: 'Practice', href: '#practice' },
+  { number: '04', label: 'Build', href: '#build' },
+  { number: '05', label: 'Think', href: '#think' },
+  { number: '06', label: 'Orbit', href: '#orbit' },
 ];
 ---
 
-<Layout title={`${site.name} | Home`}>
-  <Nav />
+<Layout
+  title="Caleb Haymore — Finance, law & systems"
+  description="Caleb Haymore is a BYU finance student exploring the places where capital, rules, and technology meet."
+  home
+>
+  <header class="minimal-nav">
+    <a href="#top" class="minimal-wordmark">Caleb Haymore</a>
+    <nav aria-label="Page navigation">
+      <a href="#journey">Index</a>
+      <a href={`mailto:${site.email}`}>Contact</a>
+    </nav>
+  </header>
 
-  <main class="site-shell pt-28 pb-24 flex flex-col gap-16">
-    <section class="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] items-start">
-      <div class="flex flex-col gap-6">
-        <div class="type-line text-xs uppercase tracking-[0.22em] text-zinc-500">caleb@portfolio:~$ ./home</div>
-        <div class="ascii-title reveal" style="--d: 0.05s">
-          <span id="title-first" data-text="Caleb">Caleb</span><br />
-          <span id="title-last" data-text="Haymore">Haymore</span>
-        </div>
-        <div class="ascii-rule reveal" style="--d: 0.15s" aria-hidden="true"></div>
-        <p class="reveal text-zinc-200 text-xl max-w-2xl" style="--d: 0.2s">{site.tagline}</p>
-        <p class="reveal text-zinc-300 leading-relaxed max-w-2xl" style="--d: 0.28s">{site.intro}</p>
-        <div class="reveal flex flex-wrap gap-3 text-sm text-zinc-300" style="--d: 0.36s">
-          {site.socialLinks.map((link) => (
-            <a href={link.href} target="_blank" rel="noopener noreferrer" class="ascii-link">
-              [{link.label}]
-            </a>
-          ))}
-        </div>
+  <main id="top" class="home-main">
+    <section class="home-hero" aria-labelledby="home-title">
+      <div class="registration-grid" aria-hidden="true">
+        <span class="register register-tl"></span>
+        <span class="register register-tc"></span>
+        <span class="register register-tr"></span>
+        <span class="register register-ml"></span>
+        <span class="register register-mr"></span>
+        <span class="register register-bl"></span>
+        <span class="register register-bc"></span>
+        <span class="register register-br"></span>
       </div>
 
-      <div class="ascii-panel p-5 reveal" style="--d: 0.3s" data-title="system-status">
-        <pre id="status-panel" class="ascii-pre">{`+------------------------------+
-| CURRENT VECTOR               |
-+------------------------------+
-| finance   [##########..]     |
-| law       [########....]     |
-| systems   [###########.]     |
-| mandarin  [#########...]     |
-| tennis    [#######.....]     |
-| sci-fi    [##########..]     |
-+------------------------------+
-| mode: inquiry / build / write|
-| clock: --:--:--   up: ----s  |
-+------------------------------+`}</pre>
+      <figure class="portrait-figure reveal-on-load">
+        <pre id="portrait-ascii" class="portrait-ascii" aria-label="ASCII portrait of Caleb Haymore">rendering portrait…</pre>
+        <canvas id="portrait-canvas" hidden></canvas>
+      </figure>
+
+      <div class="hero-copy reveal-on-load">
+        <h1 id="home-title">Caleb<br />Haymore.</h1>
+        <p class="hero-disciplines">Finance <span>/</span> Law <span>/</span> Systems</p>
       </div>
+
+      <a href="#journey" class="scroll-cue" aria-label="Scroll to Caleb's journey">
+        <span>Scroll to begin</span>
+        <span aria-hidden="true">↓</span>
+      </a>
     </section>
 
-    <ThreeBodySimulation />
-
-    <section class="flex flex-col gap-6">
-      <div class="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p class="text-xs uppercase tracking-[0.22em] text-zinc-500">index</p>
-          <h2 class="text-2xl font-bold text-zinc-100">Selected Areas</h2>
-        </div>
-        <a href="/about" class="text-sm ascii-link">[more-about-me]</a>
+    <section id="journey" class="journey-section" aria-labelledby="journey-title">
+      <div class="section-intro">
+        <p class="section-kicker">Selected coordinates</p>
+        <h2 id="journey-title">A journey through<br />what I’m exploring.</h2>
       </div>
 
-      <div class="grid gap-4 md:grid-cols-2">
-        {highlights.map((item) => (
-          <a href={item.href} class="ascii-panel p-5 flex flex-col gap-3 hover:border-zinc-400 transition-colors" data-title={item.count}>
-            <div class="flex items-center justify-between gap-4">
-              <h3 class="font-bold text-zinc-100">./{item.title.toLowerCase()}</h3>
-              <span class="text-zinc-500" aria-hidden="true">-&gt;</span>
-            </div>
-            <p class="text-sm text-zinc-400 leading-relaxed">{item.description}</p>
+      <nav class="story-index" aria-label="Journey index">
+        {sections.map((section) => (
+          <a href={section.href}>
+            <span>{section.number}</span>
+            <span>{section.label}</span>
+            <span aria-hidden="true">↘</span>
           </a>
         ))}
+      </nav>
+
+      <div class="story-list">
+        <article id="now" class="story-entry">
+          <div class="story-number">01 / NOW</div>
+          <div class="story-content">
+            <p class="story-ascii" aria-hidden="true">●─────────────── PRESENT</p>
+            <h3>Learning the language of capital.</h3>
+            <p>I’m a finance student at Brigham Young University, building a foundation in how businesses, markets, and institutions make decisions.</p>
+            <a href="/about">More about me <span aria-hidden="true">↗</span></a>
+          </div>
+        </article>
+
+        <article id="question" class="story-entry">
+          <div class="story-number">02 / QUESTION</div>
+          <div class="story-content">
+            <p class="story-ascii" aria-hidden="true">───────●──────── INTERSECTION</p>
+            <h3>What happens where capital meets rules?</h3>
+            <p>That question keeps pulling me toward the boundary between finance and law—where incentives become institutions and abstract systems create real consequences.</p>
+          </div>
+        </article>
+
+        <article id="practice" class="story-entry">
+          <div class="story-number">03 / PRACTICE</div>
+          <div class="story-content">
+            <p class="story-ascii" aria-hidden="true">──────────●───── UNDER PRESSURE</p>
+            <h3>Make the thinking survive contact.</h3>
+            <p>Case competitions are where I test ideas quickly: find the signal, build the argument, and make a decision before the clock runs out.</p>
+            <div class="compact-list" aria-label="Competition highlights">
+              {competitions.map((competition) => (
+                <div>
+                  <span>{competition.name}</span>
+                  <span>{competition.placement || competition.year}</span>
+                </div>
+              ))}
+            </div>
+            <a href="/competitions">Competition archive <span aria-hidden="true">↗</span></a>
+          </div>
+        </article>
+
+        <article id="build" class="story-entry">
+          <div class="story-number">04 / BUILD</div>
+          <div class="story-content">
+            <p class="story-ascii" aria-hidden="true">────────────●─── SYSTEMS</p>
+            <h3>Turn repeated friction into a system.</h3>
+            <p>{projects[0]?.description.split('. ').slice(0, 2).join('. ')}.</p>
+            <a href="/projects">{projects.length || 'View'} project{projects.length === 1 ? '' : 's'} <span aria-hidden="true">↗</span></a>
+          </div>
+        </article>
+
+        <article id="think" class="story-entry">
+          <div class="story-number">05 / THINK</div>
+          <div class="story-content">
+            <p class="story-ascii" aria-hidden="true">──────────────●─ OPEN QUESTIONS</p>
+            <h3>Follow the question a little farther.</h3>
+            <p>Research and writing give me room to stay with ideas that don’t fit inside a slide deck—and to make my thinking legible to someone else.</p>
+            <div class="text-links">
+              <a href="/research">Research / {research.length.toString().padStart(2, '0')}</a>
+              <a href="/writing">Writing / {essays.length.toString().padStart(2, '0')}</a>
+            </div>
+          </div>
+        </article>
       </div>
     </section>
 
-    <section class="ascii-panel p-5 flex flex-col gap-4" data-title="site-map">
-      <h2 class="text-xl font-bold text-zinc-100">Filesystem</h2>
-      <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4 text-sm text-zinc-400">
-        {pageLinks.map((link) => (
-          <a href={link.href} class="ascii-link">/{link.label.toLowerCase()}</a>
+    <section id="orbit" class="orbit-wrap">
+      <ThreeBodySimulation />
+    </section>
+
+    <section class="home-close" aria-labelledby="close-title">
+      <p class="section-kicker">End / beginning</p>
+      <h2 id="close-title">Still curious.</h2>
+      <p>If you’re thinking about capital, institutions, or strange new systems, I’d like to hear about it.</p>
+      <a class="email-link" href={`mailto:${site.email}`}>{site.email} <span aria-hidden="true">↗</span></a>
+      <div class="social-row">
+        {site.socialLinks.map((link) => (
+          <a href={link.href} target="_blank" rel="noopener noreferrer">{link.label}</a>
         ))}
       </div>
-      <p class="text-xs text-zinc-700 select-none">psst — press ` anywhere for a shell.</p>
     </section>
   </main>
+
+  <footer class="minimal-footer">
+    <span>© {new Date().getFullYear()} Caleb Haymore</span>
+    <a href="#top">Back to top ↑</a>
+  </footer>
 </Layout>
 
 <script>
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const portrait = document.getElementById('portrait-ascii');
+  const canvas = document.getElementById('portrait-canvas');
 
-  /* ---------------------------------------------------------------- */
-  /* name scramble-decode                                              */
-  /* ---------------------------------------------------------------- */
+  if (portrait instanceof HTMLPreElement && canvas instanceof HTMLCanvasElement) {
+    const image = new Image();
+    image.src = '/caleb-portrait.jpg';
 
-  const GLYPHS = '#@$%&*+=/\\|<>?~^;';
+    const renderPortrait = () => {
+      const narrow = window.innerWidth < 640;
+      const columns = narrow ? 52 : 68;
+      const rows = narrow ? 68 : 88;
+      canvas.width = columns;
+      canvas.height = rows;
+      const context = canvas.getContext('2d', { willReadFrequently: true });
+      if (!context) return;
 
-  const scramble = (el: HTMLElement) => {
-    const text = el.dataset.text ?? el.textContent ?? '';
-    let frame = 0;
-    const total = text.length * 3 + 6;
+      context.drawImage(image, 30, 70, 712, 990, 0, 0, columns, rows);
+      const pixels = context.getImageData(0, 0, columns, rows).data;
+      const glyphs = '@80&%$#*+=-:. ';
+      const lines: string[] = [];
 
-    const timer = setInterval(() => {
-      frame += 1;
-      const settled = Math.floor(frame / 3);
-      el.textContent =
-        text.slice(0, settled) +
-        text
-          .slice(settled)
-          .split('')
-          .map(() => GLYPHS[Math.floor(Math.random() * GLYPHS.length)])
-          .join('');
-      if (frame >= total) {
-        clearInterval(timer);
-        el.textContent = text;
+      for (let y = 0; y < rows; y += 1) {
+        let line = '';
+        for (let x = 0; x < columns; x += 1) {
+          const nx = (x + 0.5) / columns;
+          const ny = (y + 0.5) / rows;
+          const inHead = ((nx - 0.5) / 0.34) ** 2 + ((ny - 0.3) / 0.3) ** 2 <= 1;
+          const inNeck = ny > 0.46 && ny < 0.7 && Math.abs(nx - 0.5) < 0.19;
+          const shoulderWidth = 0.2 + Math.max(0, ny - 0.54) * 0.92;
+          const inShoulders = ny >= 0.54 && Math.abs(nx - 0.5) < shoulderWidth;
+
+          if (!inHead && !inNeck && !inShoulders) {
+            line += ' ';
+            continue;
+          }
+
+          const offset = (y * columns + x) * 4;
+          const luminance = pixels[offset] * 0.2126 + pixels[offset + 1] * 0.7152 + pixels[offset + 2] * 0.0722;
+          const lifted = luminance > 232 ? 255 : Math.min(255, luminance * 1.08 + 2);
+          const index = Math.min(glyphs.length - 1, Math.floor((lifted / 256) * glyphs.length));
+          line += glyphs[index];
+        }
+        lines.push(line.replace(/\s+$/, ''));
       }
-    }, 42);
-  };
 
-  if (!reduceMotion) {
-    ['title-first', 'title-last'].forEach((id, index) => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      setTimeout(() => scramble(el), 150 + index * 260);
-      el.addEventListener('mouseenter', () => scramble(el));
-    });
-  }
-
-  /* ---------------------------------------------------------------- */
-  /* live system-status panel                                          */
-  /* ---------------------------------------------------------------- */
-
-  const panel = document.getElementById('status-panel');
-
-  if (panel) {
-    const INNER = 30;
-    const BAR_WIDTH = 12;
-    const bars = [
-      { name: 'finance', level: 10 },
-      { name: 'law', level: 8 },
-      { name: 'systems', level: 11 },
-      { name: 'mandarin', level: 9 },
-      { name: 'tennis', level: 7 },
-      { name: 'sci-fi', level: 10 },
-    ];
-
-    const border = `+${'-'.repeat(INNER)}+`;
-    const row = (text: string) => `|${text.padEnd(INNER).slice(0, INNER)}|`;
-    const start = Date.now();
-
-    const renderPanel = (progress: number) => {
-      const elapsed = Math.floor((Date.now() - start) / 1000);
-      const clock = new Date().toLocaleTimeString('en-US', { hour12: false });
-
-      const lines = [
-        border,
-        row(' CURRENT VECTOR'),
-        border,
-        ...bars.map((bar, i) => {
-          const barProgress = Math.max(0, Math.min(1, progress * bars.length - i * 0.55));
-          const filled = Math.round(bar.level * barProgress);
-          return row(` ${bar.name.padEnd(10)}[${'#'.repeat(filled)}${'.'.repeat(BAR_WIDTH - filled)}]`);
-        }),
-        border,
-        row(' mode: inquiry / build / write'),
-        row(` clock: ${clock}   up: ${String(elapsed).padStart(4, '0')}s`),
-        border,
-      ];
-
-      panel.textContent = lines.join('\n');
+      portrait.textContent = lines.join('\n');
     };
 
-    if (reduceMotion) {
-      renderPanel(1);
-      setInterval(() => renderPanel(1), 1000);
-    } else {
-      let progress = 0;
-      const fill = setInterval(() => {
-        progress += 0.02;
-        renderPanel(progress);
-        if (progress >= 1.6) {
-          clearInterval(fill);
-          setInterval(() => renderPanel(1), 1000);
-        }
-      }, 30);
-    }
+    image.addEventListener('load', renderPortrait, { once: true });
+    let resizeTimer: ReturnType<typeof setTimeout>;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(renderPortrait, 120);
+    });
   }
 </script>
