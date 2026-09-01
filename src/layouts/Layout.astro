@@ -9,6 +9,7 @@ interface Props {
   robots?: string;
   minimal?: boolean;
   bodyClass?: string;
+  home?: boolean;
 }
 
 const {
@@ -17,7 +18,11 @@ const {
   robots,
   minimal = false,
   bodyClass = '',
+  home = false,
 } = Astro.props;
+
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
+const socialImageUrl = new URL('/og.png', Astro.site ?? Astro.url.origin);
 ---
 
 <html lang="en">
@@ -28,12 +33,27 @@ const {
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
     {robots && <meta name="robots" content={robots} />}
+    <link rel="canonical" href={canonicalUrl} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={socialImageUrl} />
+    <meta property="og:image:alt" content="ASCII portrait of Caleb Haymore beside his name and the words Finance, Law, Systems" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={socialImageUrl} />
     <title>{title}</title>
   </head>
-  <body class:list={['bg-black text-zinc-100 min-h-screen font-mono antialiased', bodyClass]}>
+  <body class:list={[
+    'min-h-screen antialiased',
+    home ? 'minimal-home' : 'bg-black text-zinc-100 font-mono',
+    bodyClass,
+  ]}>
     <slot />
-    {!minimal && <Footer />}
-    {!minimal && <GuestShell />}
+    {!home && !minimal && <Footer />}
+    {!home && !minimal && <GuestShell />}
 
     <script>
       // Typewriter effect for terminal prompt lines.
