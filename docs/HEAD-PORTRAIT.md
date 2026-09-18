@@ -1,12 +1,18 @@
 # Caleb’s reconstructed portrait
 
-Generated from Caleb’s supplied 24.94-second orbit video, IMG_6219.MOV, on 2026-09-13.
+Reconstructed locally from Caleb’s supplied 24.94-second orbit video, IMG_6219.MOV, using 100 frames and Apple RealityKit Object Capture. The September 2026 revision restores the chin, neck, collar, and shoulders from the same scan.
 
-100 frames extracted at 4 fps; reconstructed locally with Apple RealityKit PhotogrammetrySession, sequential ordering, high feature sensitivity, object masking, medium detail. The resulting textured mesh was cropped above y=0.775 in its reconstructed coordinates, sampled deterministically, centered, and normalized to 2.35 units tall. The short neck edge fades by thinning points. The head geometry and texture values come from the reconstruction, not an invented head model.
+The portrait uses 176,340 black stipples on white. Texture luminance and surface lighting control dot size rather than gray color. An invisible surface occludes rear-facing points. The lower chest fades through decreasing point density. ASCII remains an optional rendering mode.
 
-- `portrait.bin`: 63,422 little-endian float32 records: x, y, z, nx, ny, nz, luminance (7 floats per point).
-- `surface.bin`: unindexed float32 triangle positions for depth occlusion; no visible solid surface.
+Visual reference: [Phantom’s 3D face particle system](https://tympanus.net/codrops/2025/06/30/invisible-forces-the-making-of-phantom-lands-interactive-grid-and-3d-face-particle-system/), particularly its use of contrast to retain facial features. This implementation uses Caleb’s own scan and original rendering code.
 
-The source movie, full-body mesh, and original color textures remain outside the public website. The website only serves the isolated head data.
+Public asset format (version 2, little-endian):
 
-The capture has uneven side lighting and slight expression changes; the stylized result preserves those capture limitations. Floating page navigation is deferred.
+- `bust.json`: point count, position scale, bounds, and mouth center.
+- `bust-points.bin`: seven int16 values per point: xyz / 8192, normal xyz / 32767, luminance / 32767.
+- `bust-surface.bin`: unindexed triangle xyz positions, int16 / 8192.
+- `speech-preview.mp3`: generic system voice demonstration, not a voice clone.
+
+The source movie, full-body mesh, and original color textures remain outside the public website. Public geometry contains only the cropped bust. Uneven capture lighting and expression changes remain limitations of the scan.
+
+The mouth and jaw deform together, with a recessed stippled mouth interior. This is a stylized rig, not a full anatomical facial model. Audio amplitude drives the preview; timed mouth shapes are available for a future voice provider. See [voice integration](PORTRAIT-VOICE.md). Floating page navigation is deferred.

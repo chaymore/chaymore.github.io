@@ -1,35 +1,69 @@
+"""Build a stippled bust from Caleb's local textured scan (no video is published)."""
+import json
 import sys
-import numpy as np, trimesh
-from PIL import Image
 from pathlib import Path
-root=Path(sys.argv[1])
-out=Path(sys.argv[2])
+import numpy as np
+import trimesh
+from PIL import Image
+
+root, out = Path(sys.argv[1]), Path(sys.argv[2])
 out.mkdir(parents=True, exist_ok=True)
-mesh=trimesh.load(root/'head.obj',force='mesh',process=False)
-faces=np.all(mesh.vertices[mesh.faces,:,][...,1]>.775,axis=1)
-mesh=mesh.submesh([np.flatnonzero(faces)],append=True)
-p,fi=trimesh.sample.sample_surface(mesh,65000,seed=37)
-b=trimesh.triangles.points_to_barycentric(mesh.triangles[fi],p)
-uv=(mesh.visual.uv[mesh.faces[fi]]*b[:,:,None]).sum(axis=1)
-n=(mesh.vertex_normals[mesh.faces[fi]]*b[:,:,None]).sum(axis=1); n/=np.linalg.norm(n,axis=1)[:,None]
-tex=np.array(Image.open(next((root/'unpacked/0').glob('*tex*'))).convert('RGB'))
-c=tex[((1-uv[:,1])*(tex.shape[0]-1)).astype(int).clip(0,tex.shape[0]-1),(uv[:,0]*(tex.shape[1]-1)).astype(int).clip(0,tex.shape[1]-1)]/255
-luma=c@np.array([.2126,.7152,.0722])
-# Retain texture contrast for brows and hair; lift the darker window-facing profile.
-luma=np.clip(luma**.65,.08,.98)
-# Fade the short neck edge gently into the page.
-rng=np.random.default_rng(42)
-keep=rng.random(len(p))<np.clip((p[:,1]-.775)/.018,0,1)
-p,n,luma=p[keep],n[keep],luma[keep]
-center=(mesh.bounds[0]+mesh.bounds[1])/2
-p=(p-center)*2.35/(mesh.bounds[1,1]-mesh.bounds[0,1])
-# Align the reconstructed face toward the visitor.
-a=-.16
-rotation=np.array([[np.cos(a),0,np.sin(a)],[0,1,0],[-np.sin(a),0,np.cos(a)]])
-p=p@rotation.T;n=n@rotation.T
-packed=np.column_stack([p,n,luma]).astype('<f4')
-packed.tofile(out/'portrait.bin')
-vertices=(mesh.vertices-center)*2.35/(mesh.bounds[1,1]-mesh.bounds[0,1])
-vertices=vertices@rotation.T
-vertices[mesh.faces].astype('<f4').tofile(out/'surface.bin')
-print('Points',len(p),'bytes',packed.nbytes,'bounds',p.min(0),p.max(0))
+source = trimesh.load(root / 'head.obj', force='mesh', process=False)
+# Restore the complete chin, neck, collar and shoulders from the original scan.
+mask = np.all(source.vertices[source.faces][..., 1] > .575, axis=1)
+mesh = source.submesh([np.flatnonzero(mask)], append=True)
+a = -.58
+rotation = np.array([[np.cos(a), 0, np.sin(a)], [0, 1, 0], [-np.sin(a), 0, np.cos(a)]])
+origin = np.array([.0345, .82, .03])
+scale = 6.
+vertices = (mesh.vertices @ rotation.T - origin) * scale
+mouth_y = (.835 - origin[1]) * scale
+# Open a narrow seam so the jaw can separate instead of stretching a skin membrane.
+tri = vertices[mesh.faces]
+seam = tri[..., 1] - mouth_y + .10 * tri[..., 0]
+centers = tri.mean(axis=1)
+crosses = (seam.min(axis=1) < 0) & (seam.max(axis=1) >= 0)
+cut = crosses & (abs(centers[:, 0]) < .19) & (centers[:, 2] > .55)
+mesh = mesh.submesh([np.flatnonzero(~cut)], append=True)
+vertices = (mesh.vertices @ rotation.T - origin) * scale
+tex = np.asarray(Image.open(next((root/'unpacked/0').glob('*tex*'))).convert('RGB')) / 255.
+
+# Even surface spacing eliminates clumps; devote most of the samples to the face.
+parts = []
+for is_head, count, seed in [(True, 135000, 37), (False, 55000, 71)]:
+    selected = np.all(mesh.vertices[mesh.faces][..., 1] > .775, axis=1)
+    if not is_head: selected = ~selected
+    part = mesh.submesh([np.flatnonzero(selected)], append=True)
+    p, fi = trimesh.sample.sample_surface_even(part, count, seed=seed)
+    bary = trimesh.triangles.points_to_barycentric(part.triangles[fi], p)
+    uv = (part.visual.uv[part.faces[fi]] * bary[:, :, None]).sum(axis=1)
+    n = (part.vertex_normals[part.faces[fi]] * bary[:, :, None]).sum(axis=1)
+    n /= np.maximum(np.linalg.norm(n, axis=1)[:, None], 1e-8)
+    c = tex[((1-uv[:, 1])*(tex.shape[0]-1)).astype(int).clip(0, tex.shape[0]-1),
+            (uv[:, 0]*(tex.shape[1]-1)).astype(int).clip(0, tex.shape[1]-1)]
+    luma = c @ np.array([.2126, .7152, .0722])
+    p = (p @ rotation.T - origin) * scale
+    n = n @ rotation.T
+    # The scan's window casts a strong side shadow. Lift that low-frequency cast,
+    # retaining local contrast in eyebrows, eyes, lips, and hair.
+    skin = (p[:,1] > -.3) & (p[:,1] < .62) & (p[:,2] > .2)
+    luma[skin] = np.clip(luma[skin] + .10 * np.clip(p[skin,0] + .1, 0, 1), 0, 1)
+    # Fade the shoulder/chest edge by removing samples, never by turning dots gray.
+    fade = np.clip((p[:,1] + 1.45) / .50, 0, 1)
+    fade = fade*fade*(3-2*fade)
+    keep = np.random.default_rng(seed).random(len(p)) < fade
+    parts.append(np.column_stack([p[keep], n[keep], luma[keep]]))
+points = np.concatenate(parts)
+# Shuffle keeps each quality-level prefix spatially representative.
+np.random.default_rng(123).shuffle(points)
+encoded = points.copy()
+encoded[:,:3] *= 8192
+encoded[:,3:6] *= 32767
+encoded[:,6] *= 32767
+assert np.isfinite(encoded).all() and np.max(abs(encoded)) <= 32767
+np.rint(encoded).astype('<i2').tofile(out/'bust-points.bin')
+np.rint(vertices[mesh.faces] * 8192).astype('<i2').tofile(out/'bust-surface.bin')
+meta = dict(version=2, count=len(points), scale=8192, mouth=[0, round(mouth_y,5), .702],
+            bounds=[points[:,:3].min(axis=0).tolist(),points[:,:3].max(axis=0).tolist()])
+(out/'bust.json').write_text(json.dumps(meta, indent=2)+'\n')
+print(json.dumps(meta))
