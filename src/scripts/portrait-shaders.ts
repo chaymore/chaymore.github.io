@@ -11,15 +11,12 @@ export const deform = /* glsl */ `
     float lower = 1. - smoothstep(-blend, blend, line);
     float neck = smoothstep(-.68, -.25, p.y);
     float weight = front * across * lower * neck;
-    vec3 pivot = vec3(mouthCenter.x, mouthCenter.y+.26, .10);
-    vec3 q = p-pivot;
-    float angle = mouth.x * .23;
-    vec3 rotated = vec3(q.x, cos(angle)*q.y-sin(angle)*q.z, sin(angle)*q.y+cos(angle)*q.z)+pivot;
-    p = mix(p, rotated, weight);
     float lips = exp(-pow(line/.105, 2.)) * (1.-smoothstep(.15,.31,abs(p.x-mouthCenter.x))) * front;
-    p.x = mix(p.x, mouthCenter.x + (p.x-mouthCenter.x)*(1.-mouth.y*.25+mouth.z*.18), lips);
-    p.z += mouth.y * .042 * lips;
-    p.y += mouth.x * .012 * lips * (1.-lower);
+    // Keep the chin nearly still; the opening comes primarily from the lower lip.
+    p.y -= mouth.x * (.008 * weight + .055 * lips * lower);
+    p.x = mix(p.x, mouthCenter.x + (p.x-mouthCenter.x)*(1.-mouth.y*.18+mouth.z*.12), lips);
+    p.z += mouth.y * .025 * lips;
+    p.y += mouth.x * .008 * lips * (1.-lower);
     return p;
   }
 `;
