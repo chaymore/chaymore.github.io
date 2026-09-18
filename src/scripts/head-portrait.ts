@@ -38,7 +38,7 @@ export async function initHeadPortrait(root: HTMLElement) {
     renderer = new THREE.WebGLRenderer({canvas, antialias:true});
     renderer.setClearColor(0xffffff);
     renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-    const responses = await Promise.all(['/head/bust.json','/head/bust-points.bin','/head/bust-surface.bin'].map(url => fetch(url,{signal:events.signal})));
+    const responses = await Promise.all(['/head/bust.json','/head/bust-points.bin','/head/bust-surface.bin'].map(url => fetch(`${url}?revision=lip-alignment-2`,{signal:events.signal})));
     if(responses.some(response => !response.ok)) throw new Error('Portrait asset unavailable');
     const [meta, pointBuffer, surfaceBuffer] = await Promise.all([responses[0].json(), responses[1].arrayBuffer(), responses[2].arrayBuffer()]);
     if(meta.version !== 2 || pointBuffer.byteLength !== meta.count*14 || surfaceBuffer.byteLength%18 !== 0) throw new Error('Invalid portrait data');
