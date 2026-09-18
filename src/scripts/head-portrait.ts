@@ -74,8 +74,8 @@ export async function initHeadPortrait(root: HTMLElement) {
     const cavityMaterial=new THREE.ShaderMaterial({uniforms,vertexShader:`
       uniform vec3 mouth;uniform vec3 mouthCenter;uniform float pixelRatio;uniform float pointScale;
       void main(){
-        float width=.19*(1.-mouth.y*.25+mouth.z*.18);
-        vec3 p=vec3(mouthCenter.x+position.x*width,mouthCenter.y-.067*mouth.x+position.y*(.008+.062*mouth.x),mouthCenter.z-.032-.038*(1.-position.z));
+        float width=.19*(1.-mouth.y*.18+mouth.z*.12);
+        vec3 p=vec3(mouthCenter.x+position.x*width,mouthCenter.y-.0275*mouth.x+position.y*(.006+.0355*mouth.x),mouthCenter.z-.032-.038*(1.-position.z));
         p.y-=.10*(p.x-mouthCenter.x);
         gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);
         gl_PointSize=1.3*pixelRatio*pointScale;
