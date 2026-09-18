@@ -1,11 +1,15 @@
 <section class="head-portrait" aria-label="Interactive three-dimensional dot portrait of Caleb Haymore">
   <canvas aria-label="Caleb’s head rendered as a rotating cloud of dots. Drag or use the arrow keys to rotate." tabindex="0"></canvas>
-  <p class="portrait-status" role="status">Forming a portrait<span aria-hidden="true">…</span></p>
+  <p class="portrait-status" data-load-status role="status">Forming a portrait<span aria-hidden="true">…</span></p>
   <div class="portrait-controls" aria-label="Portrait controls">
-    <button type="button" data-motion aria-label="Pause rotation">Pause</button>
+    <button type="button" disabled data-motion aria-label="Pause rotation">Pause</button>
     <span aria-hidden="true">/</span>
-    <button type="button" data-style aria-label="Switch to ASCII characters">Dots</button>
+    <button type="button" disabled data-style aria-label="Switch to ASCII characters">Dots</button>
+    <span aria-hidden="true">/</span>
+    <button type="button" disabled data-speech aria-label="Test speaking animation">Test speech</button>
   </div>
+  <p class="speech-note" data-speech-note role="status" hidden></p>
+  <audio preload="none" src="/head/speech-preview.mp3"></audio>
   <p class="portrait-hint">Drag to turn</p>
   <noscript><p class="no-script">Enable JavaScript to explore Caleb’s 3D portrait.</p></noscript>
 </section>
@@ -14,8 +18,10 @@
   canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; outline-offset: -6px; }
   canvas:active { cursor: grabbing; }
   canvas:focus-visible { outline: 1px solid #aaa; }
-  .portrait-controls { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; color: #c5c5c5; }
-  button { font: 10px/1.4 ui-monospace, monospace; letter-spacing: .06em; color: #888; border: 0; background: none; min-height: 44px; padding: 8px; cursor: pointer; }
+  .portrait-controls { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; width:max-content; max-width:calc(100% - 24px); color: #c5c5c5; }
+  button { white-space:nowrap; font: 10px/1.4 ui-monospace, monospace; letter-spacing: .06em; color: #888; border: 0; background: none; min-height: 44px; padding: 8px; cursor: pointer; }
+  .speech-note { position:absolute; bottom:86px; width:100%; text-align:center; font:10px ui-monospace,monospace; color:#777; }
+  button:disabled { opacity:.4; cursor:wait; }
   button:hover, button:focus-visible { color: #111; }
   .portrait-hint { position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%); margin: 0; color: #aaa; font: 9px/1 ui-monospace, monospace; letter-spacing: .07em; pointer-events: none; }
   .portrait-status, .no-script { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color: #888; font: 11px ui-monospace, monospace; }
