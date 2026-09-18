@@ -19,22 +19,12 @@ scale = 6.
 vertices = (mesh.vertices @ rotation.T - origin) * scale
 mouth_x, mouth_y = .015, .018
 # Calibrated on the original textured scan: the closed lip line, below the philtrum.
-# Open a narrow seam so the jaw can separate instead of stretching a skin membrane.
-tri = vertices[mesh.faces]
-seam = tri[..., 1] - mouth_y + .10 * (tri[..., 0] - mouth_x)
-centers = tri.mean(axis=1)
-crosses = (seam.min(axis=1) < 0) & (seam.max(axis=1) >= 0)
-cut = crosses & (abs(centers[:, 0] - mouth_x) < .19) & (centers[:, 2] > .55)
-mesh = mesh.submesh([np.flatnonzero(~cut)], append=True)
-vertices = (mesh.vertices @ rotation.T - origin) * scale
 tex = np.asarray(Image.open(next((root/'unpacked/0').glob('*tex*'))).convert('RGB')) / 255.
 
-# Even surface spacing eliminates clumps; devote most of the samples to the face.
+# One continuous sampling density avoids a visible head/neck boundary.
 parts = []
-for is_head, count, seed in [(True, 135000, 37), (False, 55000, 71)]:
-    selected = np.all(mesh.vertices[mesh.faces][..., 1] > .775, axis=1)
-    if not is_head: selected = ~selected
-    part = mesh.submesh([np.flatnonzero(selected)], append=True)
+for count, seed in [(190000, 37)]:
+    part = mesh
     p, fi = trimesh.sample.sample_surface_even(part, count, seed=seed)
     bary = trimesh.triangles.points_to_barycentric(part.triangles[fi], p)
     uv = (part.visual.uv[part.faces[fi]] * bary[:, :, None]).sum(axis=1)

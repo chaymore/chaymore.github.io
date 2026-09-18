@@ -1,3 +1,16 @@
+// Analytic opening removes coarse scan triangles from the mouth interior.
+export const aperture = /* glsl */ `
+  uniform vec3 mouth;
+  uniform vec3 mouthCenter;
+  varying vec3 portraitPosition;
+  bool insideMouth() {
+    float width = .19*(1.-mouth.y*.18+mouth.z*.12);
+    float x = portraitPosition.x-mouthCenter.x;
+    float y = portraitPosition.y-mouthCenter.y+.0275*mouth.x+.10*x;
+    vec2 uv = vec2(x/width, y/(.003+.0355*mouth.x));
+    return mouth.x>.03 && portraitPosition.z>.5 && dot(uv,uv)<1.;
+  }
+`;
 // Shared deformation keeps the visible stipples and depth surface perfectly aligned.
 export const deform = /* glsl */ `
   uniform vec3 mouth;
@@ -29,14 +42,16 @@ export const pointVertex = /* glsl */ `
   varying float radius;
   varying float ink;
   varying float visible;
+  varying vec3 portraitPosition;
   ${deform}
   void main() {
     vec3 p = speak(position);
+    portraitPosition = p;
     vec3 n = normalize(normalMatrix * normal);
     float light = max(0.,dot(n,normalize(vec3(-.35,.55,1.))));
     // Black pigment; light and texture affect mark area, never pigment color.
     ink = clamp(.08 + .78 * pow(1.-shade,1.45) + .14 * (1.-light), .06, 1.);
-    float size = (.40 + 1.05 * pow(ink,.7)) * pointScale;
+    float size = (.65 + .45 * pow(ink,.7)) * pointScale;
     visible = ascii > .5 && seed > .18 ? 0. : 1.;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(p,1.);
     gl_Position.z -= .0008 * gl_Position.w;
@@ -50,7 +65,9 @@ export const pointFragment = /* glsl */ `
   varying float radius;
   varying float ink;
   varying float visible;
+  ${aperture}
   void main() {
+    if (insideMouth()) discard;
     if (visible < .5) discard;
     if (ascii > .5) {
       float index = min(7., floor(ink*8.));
@@ -59,4 +76,8 @@ export const pointFragment = /* glsl */ `
     gl_FragColor=vec4(0.,0.,0.,1.);
   }
 `;
-export const surfaceVertex = `${deform}\nvoid main(){gl_Position=projectionMatrix*modelViewMatrix*vec4(speak(position),1.);}`;
+export const surfaceVertex = `${deform}
+varying vec3 portraitPosition;
+void main(){portraitPosition=speak(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(portraitPosition,1.);}`;
+export const surfaceFragment = `${aperture}
+void main(){if(insideMouth()) discard;gl_FragColor=vec4(1.);}`;

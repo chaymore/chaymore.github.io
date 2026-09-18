@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { PortraitSpeech, type MouthShape, type VisemeCue } from './portrait-speech';
-import { pointVertex, pointFragment, surfaceVertex } from './portrait-shaders';
+import { pointVertex, pointFragment, surfaceVertex, surfaceFragment } from './portrait-shaders';
 
 export interface PortraitAPI {
   setMouth(shape: Partial<MouthShape>): void;
@@ -38,7 +38,7 @@ export async function initHeadPortrait(root: HTMLElement) {
     renderer = new THREE.WebGLRenderer({canvas, antialias:true});
     renderer.setClearColor(0xffffff);
     renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-    const responses = await Promise.all(['/head/bust.json','/head/bust-points.bin','/head/bust-surface.bin'].map(url => fetch(`${url}?revision=lip-alignment-2`,{signal:events.signal})));
+    const responses = await Promise.all(['/head/bust.json','/head/bust-points.bin','/head/bust-surface.bin'].map(url => fetch(`${url}?revision=continuous-mouth-3`,{signal:events.signal})));
     if(responses.some(response => !response.ok)) throw new Error('Portrait asset unavailable');
     const [meta, pointBuffer, surfaceBuffer] = await Promise.all([responses[0].json(), responses[1].arrayBuffer(), responses[2].arrayBuffer()]);
     if(meta.version !== 2 || pointBuffer.byteLength !== meta.count*14 || surfaceBuffer.byteLength%18 !== 0) throw new Error('Invalid portrait data');
@@ -59,7 +59,7 @@ export async function initHeadPortrait(root: HTMLElement) {
     const glyphs=new THREE.CanvasTexture(atlas); disposable.push(glyphs);
     const uniforms={mouth:{value:new THREE.Vector3()},mouthCenter:{value:new THREE.Vector3(...meta.mouth)},pixelRatio:{value:renderer.getPixelRatio()},pointScale:{value:1},ascii:{value:0},glyphs:{value:glyphs}};
     const material=new THREE.ShaderMaterial({uniforms,vertexShader:pointVertex,fragmentShader:pointFragment}); disposable.push(material);
-    const depthMaterial=new THREE.ShaderMaterial({uniforms,vertexShader:surfaceVertex,fragmentShader:'void main(){gl_FragColor=vec4(1.);}',colorWrite:false,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:2,polygonOffsetUnits:2}); disposable.push(depthMaterial);
+    const depthMaterial=new THREE.ShaderMaterial({uniforms,vertexShader:surfaceVertex,fragmentShader:surfaceFragment,colorWrite:false,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:2,polygonOffsetUnits:2}); disposable.push(depthMaterial);
     const bust=new THREE.Group();
     const surface=new THREE.Mesh(surfaceGeometry,depthMaterial);surface.renderOrder=-1;
     bust.add(surface,new THREE.Points(geometry,material));
