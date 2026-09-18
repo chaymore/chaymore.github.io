@@ -17,13 +17,14 @@ rotation = np.array([[np.cos(a), 0, np.sin(a)], [0, 1, 0], [-np.sin(a), 0, np.co
 origin = np.array([.0345, .82, .03])
 scale = 6.
 vertices = (mesh.vertices @ rotation.T - origin) * scale
-mouth_y = (.835 - origin[1]) * scale
+mouth_x, mouth_y = .015, .018
+# Calibrated on the original textured scan: the closed lip line, below the philtrum.
 # Open a narrow seam so the jaw can separate instead of stretching a skin membrane.
 tri = vertices[mesh.faces]
-seam = tri[..., 1] - mouth_y + .10 * tri[..., 0]
+seam = tri[..., 1] - mouth_y + .10 * (tri[..., 0] - mouth_x)
 centers = tri.mean(axis=1)
 crosses = (seam.min(axis=1) < 0) & (seam.max(axis=1) >= 0)
-cut = crosses & (abs(centers[:, 0]) < .19) & (centers[:, 2] > .55)
+cut = crosses & (abs(centers[:, 0] - mouth_x) < .19) & (centers[:, 2] > .55)
 mesh = mesh.submesh([np.flatnonzero(~cut)], append=True)
 vertices = (mesh.vertices @ rotation.T - origin) * scale
 tex = np.asarray(Image.open(next((root/'unpacked/0').glob('*tex*'))).convert('RGB')) / 255.
@@ -63,7 +64,7 @@ encoded[:,6] *= 32767
 assert np.isfinite(encoded).all() and np.max(abs(encoded)) <= 32767
 np.rint(encoded).astype('<i2').tofile(out/'bust-points.bin')
 np.rint(vertices[mesh.faces] * 8192).astype('<i2').tofile(out/'bust-surface.bin')
-meta = dict(version=2, count=len(points), scale=8192, mouth=[0, round(mouth_y,5), .702],
+meta = dict(version=2, count=len(points), scale=8192, mouth=[mouth_x, mouth_y, .702],
             bounds=[points[:,:3].min(axis=0).tolist(),points[:,:3].max(axis=0).tolist()])
 (out/'bust.json').write_text(json.dumps(meta, indent=2)+'\n')
 print(json.dumps(meta))
