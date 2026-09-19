@@ -15,7 +15,6 @@ export async function initHeadPortrait(root: HTMLElement) {
   const canvas = root.querySelector('canvas')!;
   const status = root.querySelector<HTMLElement>('[data-load-status]')!;
   const motionButton = root.querySelector<HTMLButtonElement>('[data-motion]')!;
-  const styleButton = root.querySelector<HTMLButtonElement>('[data-style]')!;
   const speechButton = root.querySelector<HTMLButtonElement>('[data-speech]')!;
   const speechNote = root.querySelector<HTMLElement>('[data-speech-note]')!;
   const audio = root.querySelector<HTMLAudioElement>('audio')!;
@@ -23,7 +22,7 @@ export async function initHeadPortrait(root: HTMLElement) {
   const events = new AbortController();
   const disposable: { dispose(): void }[] = [];
   const speech = new PortraitSpeech();
-  let playing = !reducedMotion.matches, ascii = false, dragging = false;
+  let playing = !reducedMotion.matches, dragging = false;
   let previousX = 0, previousY = 0, frame = 0, demoActive = false;
   let renderer: THREE.WebGLRenderer | undefined;
   let observer: ResizeObserver | undefined;
@@ -95,11 +94,10 @@ export async function initHeadPortrait(root: HTMLElement) {
     };
     observer=new ResizeObserver(resize);observer.observe(root);
     status.hidden=true;
-    for(const button of [motionButton,styleButton,speechButton])button.disabled=false;
+    for(const button of [motionButton,speechButton])button.disabled=false;
     const updateMotion=()=>{motionButton.textContent=playing?'Pause':'Rotate';motionButton.setAttribute('aria-label',playing?'Pause rotation':'Start rotation');};
     updateMotion();
     on(motionButton,'click',()=>{playing=!playing;updateMotion();});
-    on(styleButton,'click',()=>{ascii=!ascii;uniforms.ascii.value=Number(ascii);styleButton.textContent=ascii?'ASCII':'Dots';styleButton.setAttribute('aria-label',ascii?'Switch to dots':'Switch to ASCII characters');render();});
     reducedMotion.addEventListener('change',()=>{playing=!reducedMotion.matches;updateMotion();},{signal:events.signal});
     on(canvas,'pointerdown',e=>{dragging=true;previousX=e.clientX;previousY=e.clientY;canvas.setPointerCapture(e.pointerId);});
     on(canvas,'pointermove',e=>{if(!dragging)return;bust.rotation.y+=(e.clientX-previousX)*.008;bust.rotation.x=THREE.MathUtils.clamp(bust.rotation.x+(e.clientY-previousY)*.005,-.3,.3);previousX=e.clientX;previousY=e.clientY;render();});
