@@ -51,12 +51,18 @@ export const pointVertex = /* glsl */ `
     float light = max(0.,dot(n,normalize(vec3(-.35,.55,1.))));
     // Black pigment; light and texture affect mark area, never pigment color.
     ink = clamp(.08 + .78 * pow(1.-shade,1.45) + .14 * (1.-light), .06, 1.);
-    // Local contrast follows the scanned eyelids and irises, not the entire socket.
-    vec2 leftEye = (position.xy-vec2(-.205,.455))/vec2(.155,.073);
-    vec2 rightEye = (position.xy-vec2(.225,.425))/vec2(.155,.073);
-    float eye = (1.-smoothstep(.45,1.,min(length(leftEye),length(rightEye)))) * smoothstep(.35,.55,position.z);
-    float eyeInk = smoothstep(.18,.68,1.-shade);
-    float size = mix(.65 + .45 * pow(ink,.7), .48 + 1.05*eyeInk, eye) * pointScale;
+    float baseSize = .65 + .45 * pow(ink,.7);
+    // Keep eye emphasis tight and quiet: only existing dark iris/lid detail grows.
+    vec2 leftIris = (position.xy-vec2(-.205,.455))/vec2(.058,.042);
+    vec2 rightIris = (position.xy-vec2(.225,.425))/vec2(.058,.042);
+    vec2 leftLid = (position.xy-vec2(-.205,.482))/vec2(.108,.025);
+    vec2 rightLid = (position.xy-vec2(.225,.452))/vec2(.108,.025);
+    float iris = 1.-smoothstep(.7,1.,min(length(leftIris),length(rightIris)));
+    float upperLid = 1.-smoothstep(.65,1.,min(length(leftLid),length(rightLid)));
+    float darkDetail = smoothstep(.52,.82,1.-shade);
+    float front = smoothstep(.4,.56,position.z);
+    float eyeLift = front * darkDetail * (.07*iris + .04*upperLid);
+    float size = baseSize * (1.+eyeLift) * pointScale;
     visible = ascii > .5 && seed > .18 ? 0. : 1.;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(p,1.);
     gl_Position.z -= .0008 * gl_Position.w;
