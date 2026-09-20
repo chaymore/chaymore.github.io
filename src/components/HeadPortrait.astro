@@ -1,8 +1,25 @@
-<section class="head-portrait" aria-label="Interactive three-dimensional dot portrait of Caleb Haymore">
+---
+const portraitApiUrl = import.meta.env.PUBLIC_PORTRAIT_API_URL ?? '';
+---
+<section class="head-portrait" data-api-base={portraitApiUrl} aria-label="Interactive three-dimensional dot portrait of Caleb Haymore">
   <canvas aria-label="Caleb’s head rendered as a rotating cloud of dots. Drag or use the arrow keys to rotate." tabindex="0"></canvas>
   <p class="portrait-status" data-load-status role="status">Forming a portrait<span aria-hidden="true">…</span></p>
+  <aside class="portrait-chat" data-chat-panel aria-label="Ask Caleb" hidden>
+    <header><span>ASK CALEB</span><button type="button" data-chat-close aria-label="Close questions">×</button></header>
+    <div class="chat-log" data-chat-log role="log" aria-live="polite">
+      <p class="chat-message chat-assistant">Ask this digital version of me about my work, interests, or projects.</p>
+    </div>
+    <form data-chat-form>
+      <label class="sr-only" for="portrait-question">Question for Caleb</label>
+      <input id="portrait-question" data-chat-input maxlength="600" autocomplete="off" placeholder="What are you working on?" />
+      <button type="submit" data-chat-submit>Ask</button>
+    </form>
+    <footer><span data-chat-note></span><button type="button" data-chat-replay hidden>speak</button></footer>
+  </aside>
   <div class="portrait-controls" aria-label="Portrait controls">
     <button type="button" disabled data-motion aria-label="Pause rotation">Pause</button>
+    <span aria-hidden="true">/</span>
+    <button type="button" data-chat-toggle aria-expanded="false">Ask Caleb</button>
     <span aria-hidden="true">/</span>
     <button type="button" disabled data-speech aria-label="Test speaking animation">Test speech</button>
   </div>
@@ -24,9 +41,23 @@
   .portrait-hint { position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%); margin: 0; color: #aaa; font: 9px/1 ui-monospace, monospace; letter-spacing: .07em; pointer-events: none; }
   .portrait-status, .no-script { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color: #888; font: 11px ui-monospace, monospace; }
   [hidden] { display: none !important; }
+  .portrait-chat { position:absolute; right:clamp(16px,4vw,56px); bottom:92px; z-index:2; width:min(390px,calc(100% - 32px)); max-height:min(520px,calc(100% - 130px)); border:1px solid #bbb; background:rgba(255,255,255,.96); box-shadow:0 12px 36px rgba(0,0,0,.12); font:11px/1.5 ui-monospace,monospace; color:#222; }
+  .portrait-chat header,.portrait-chat footer { display:flex; align-items:center; justify-content:space-between; min-height:38px; padding:0 10px; color:#777; letter-spacing:.08em; }
+  .portrait-chat header { border-bottom:1px solid #ddd; }
+  .portrait-chat header button,.portrait-chat footer button { min-height:32px; padding:4px 6px; }
+  .chat-log { display:flex; flex-direction:column; gap:9px; max-height:290px; overflow:auto; padding:12px; }
+  .chat-message { max-width:90%; margin:0; padding:8px 10px; border:1px solid #ddd; background:#fff; white-space:pre-wrap; }
+  .chat-user { align-self:flex-end; background:#111; color:#fff; border-color:#111; }
+  .chat-assistant { align-self:flex-start; }
+  .portrait-chat form { display:flex; border-top:1px solid #ddd; }
+  .portrait-chat input { flex:1; min-width:0; height:44px; border:0; padding:0 12px; outline:none; font:11px ui-monospace,monospace; background:#fff; }
+  .portrait-chat form button { border-left:1px solid #ddd; color:#111; }
+  .portrait-chat footer { min-height:28px; font-size:9px; }
+  @media (max-width:600px) { .portrait-chat { right:16px; bottom:86px; } .portrait-controls { gap:4px; } }
 </style>
 <script>
   import { initHeadPortrait } from '../scripts/head-portrait';
+  import { initPortraitChat } from '../scripts/portrait-chat';
   const root = document.querySelector<HTMLElement>('.head-portrait');
-  if (root) initHeadPortrait(root);
+  if (root) { initHeadPortrait(root); initPortraitChat(root); }
 </script>
