@@ -51,12 +51,7 @@ export const pointVertex = /* glsl */ `
     float light = max(0.,dot(n,normalize(vec3(-.35,.55,1.))));
     // Black pigment; light and texture affect mark area, never pigment color.
     ink = clamp(.08 + .78 * pow(1.-shade,1.45) + .14 * (1.-light), .06, 1.);
-    // Local contrast follows the scanned eyelids and irises, not the entire socket.
-    vec2 leftEye = (position.xy-vec2(-.205,.455))/vec2(.155,.073);
-    vec2 rightEye = (position.xy-vec2(.225,.425))/vec2(.155,.073);
-    float eye = (1.-smoothstep(.45,1.,min(length(leftEye),length(rightEye)))) * smoothstep(.35,.55,position.z);
-    float eyeInk = smoothstep(.18,.68,1.-shade);
-    float size = mix(.65 + .45 * pow(ink,.7), .48 + 1.05*eyeInk, eye) * pointScale;
+    float size = (.65 + .45 * pow(ink,.7)) * pointScale;
     visible = ascii > .5 && seed > .18 ? 0. : 1.;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(p,1.);
     gl_Position.z -= .0008 * gl_Position.w;
