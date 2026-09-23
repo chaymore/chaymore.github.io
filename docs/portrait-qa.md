@@ -75,6 +75,7 @@ A curated `Public Portrait Context/portrait-profile` source already exists in th
 
 - `POST /ask` accepts a question and up to four recent messages, retrieves up to eight D1 chunks, and streams plain text.
 - `POST /speak` converts the completed answer into MP3.
+- Spoken questions are transcribed in the browser with the Web Speech API. The transcript is shown as the visitor message and then sent to the existing `/ask` and `/speak` routes. No speech-to-text secret or Worker route is required. Mouth animation is driven only by the reply MP3.
 - `POST /admin/sync` replaces the D1 snapshot and requires the sync bearer token.
 - `GET /health` reports the indexed chunk count but no private content.
 - Requests are CORS-restricted to the configured site and locally hashed/rate-limited without retaining raw IP addresses.
@@ -97,3 +98,11 @@ npm run dev
 ```
 
 For local Astro, use `PUBLIC_PORTRAIT_API_URL=http://localhost:8787 npm run dev`.
+
+## Speech input
+
+The **mic** control sits in the existing Ask Caleb composer. Tap it to talk, or hold it and release to send. Browsers with `SpeechRecognition` or `webkitSpeechRecognition` (Chrome and Safari, including their mobile versions, on localhost or HTTPS) transcribe speech on the device’s speech service. Firefox and other browsers without that API keep typed questions working and show “Speech input isn’t available in this browser.” Denying the microphone shows “Microphone permission denied.” Silence shows “Didn’t catch that.”
+
+Nothing in this path calls `getUserMedia` for the portrait. `window.calebPortrait.connectAudio` still receives only the reply audio element.
+
+To try it against a live Worker, set `PUBLIC_PORTRAIT_API_URL` to the deployed Worker URL and open the site from an allowed origin (`https://calebhaymore.com`, `https://chaymore.github.io`, or local `http://localhost` / `http://127.0.0.1`). Allow the microphone, ask a short question, and confirm the transcript and the streamed answer both appear as text before the face speaks. Typed questions should behave as before when the mic is left unused.

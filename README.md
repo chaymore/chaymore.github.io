@@ -19,6 +19,7 @@ Set `PUBLIC_PORTRAIT_API_URL` to the deployed Worker URL to enable **Ask Caleb**
 - A scheduled GitHub Action reads approved files and replaces the searchable Cloudflare D1 snapshot.
 - Visitors query the D1 snapshot through a Cloudflare Worker. Google Drive is never queried at request time.
 - The Worker streams a grounded answer through OpenRouter, then exposes a separate speech endpoint. The browser connects returned audio to the existing portrait mouth animation.
+- Where the browser supports the Web Speech API, Ask Caleb can also take a spoken question. Only the transcript is sent to the Worker. The microphone is never connected to the mouth analyser.
 
 See [`docs/portrait-qa.md`](docs/portrait-qa.md) for deployment, privacy, and maintenance instructions.
 
@@ -36,7 +37,8 @@ See [`docs/portrait-qa.md`](docs/portrait-qa.md) for deployment, privacy, and ma
 
 - `src/components/HeadPortrait.astro` — portrait and Q&A interface
 - `src/scripts/head-portrait.ts` — Three.js portrait runtime
-- `src/scripts/portrait-chat.ts` — streamed chat and generated speech client
+- `src/scripts/portrait-chat.ts` — streamed chat, browser speech input, and generated speech client
+- `src/scripts/portrait-speech-input.ts` — Web Speech API session; no microphone stream and no mouth analysis
 - `portrait-worker/src/index.ts` — API, retrieval, rate limiting, generation, and speech
 - `scripts/sync-portrait-context.mjs` — private Drive-to-D1 ingestion
 - `.github/workflows/sync-portrait-context.yml` — nightly/manual synchronization

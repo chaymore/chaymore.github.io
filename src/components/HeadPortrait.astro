@@ -12,9 +12,10 @@ const portraitApiUrl = import.meta.env.PUBLIC_PORTRAIT_API_URL ?? '';
     <form data-chat-form>
       <label class="sr-only" for="portrait-question">Question for Caleb</label>
       <input id="portrait-question" data-chat-input maxlength="600" autocomplete="off" placeholder="What are you working on?" />
+      <button type="button" data-chat-mic aria-pressed="false" aria-label="Speak a question" title="Tap to talk, or hold to talk">mic</button>
       <button type="submit" data-chat-submit>Ask</button>
     </form>
-    <footer><span data-chat-note></span><button type="button" data-chat-replay hidden>speak</button></footer>
+    <footer><span data-chat-note role="status"></span><button type="button" data-chat-replay hidden>speak</button></footer>
   </aside>
   <div class="portrait-controls" aria-label="Portrait controls">
     <button type="button" disabled data-motion aria-label="Pause rotation">Pause</button>
@@ -52,7 +53,10 @@ const portraitApiUrl = import.meta.env.PUBLIC_PORTRAIT_API_URL ?? '';
   .portrait-chat form { display:flex; border-top:1px solid #ddd; }
   .portrait-chat input { flex:1; min-width:0; height:44px; border:0; padding:0 12px; outline:none; font:11px ui-monospace,monospace; background:#fff; }
   .portrait-chat form button { border-left:1px solid #ddd; color:#111; }
+  .portrait-chat [data-chat-mic] { min-width:52px; touch-action:none; user-select:none; -webkit-user-select:none; }
+  .portrait-chat [data-chat-mic][aria-pressed="true"] { background:#111; color:#fff; }
   .portrait-chat footer { min-height:28px; font-size:9px; }
+  .portrait-chat footer span { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   @media (max-width:600px) { .portrait-chat { right:16px; bottom:86px; } .portrait-controls { gap:4px; } }
 </style>
 <script>
