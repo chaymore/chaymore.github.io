@@ -1,43 +1,42 @@
-# Astro Starter Kit: Minimal
+# Caleb Haymore
+
+Astro/TypeScript personal site deployed to GitHub Pages. The home page is an interactive Three.js stippled portrait with an optional, retrieval-grounded Q&A voice.
+
+## Local site
 
 ```sh
-npm create astro@latest -- --template minimal
+npm ci
+npm run dev
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+Set `PUBLIC_PORTRAIT_API_URL` to the deployed Worker URL to enable **Ask Caleb**. When it is absent, the control stays disabled and the rest of the portrait works normally.
 
-## 🚀 Project Structure
+## Portrait Q&A architecture
 
-Inside of your Astro project, you'll see the following folders and files:
+- The private Knowledge Wiki remains in Google Drive; the service account only sees the curated `Public Portrait Context` folder.
+- Only files whose frontmatter contains `portrait_access: public` are synchronized.
+- `.private` and `.obsidian` folders are never traversed.
+- A scheduled GitHub Action reads approved files and replaces the searchable Cloudflare D1 snapshot.
+- Visitors query the D1 snapshot through a Cloudflare Worker. Google Drive is never queried at request time.
+- The Worker streams a grounded answer through OpenRouter, then exposes a separate speech endpoint. The browser connects returned audio to the existing portrait mouth animation.
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
+See [`docs/portrait-qa.md`](docs/portrait-qa.md) for deployment, privacy, and maintenance instructions.
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## Commands
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+| Command | Action |
+| --- | --- |
+| `npm run dev` | Start Astro locally |
+| `npm run build` | Build the static GitHub Pages site |
+| `node --test tests/*.test.mjs` | Run portrait behavior tests |
+| `cd portrait-worker && npm run typecheck` | Type-check the Worker |
+| `cd portrait-worker && npm run dev` | Run the Worker with local D1 |
 
-Any static assets, like images, can be placed in the `public/` directory.
+## Key files
 
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+- `src/components/HeadPortrait.astro` — portrait and Q&A interface
+- `src/scripts/head-portrait.ts` — Three.js portrait runtime
+- `src/scripts/portrait-chat.ts` — streamed chat and generated speech client
+- `portrait-worker/src/index.ts` — API, retrieval, rate limiting, generation, and speech
+- `scripts/sync-portrait-context.mjs` — private Drive-to-D1 ingestion
+- `.github/workflows/sync-portrait-context.yml` — nightly/manual synchronization

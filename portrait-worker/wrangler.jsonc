@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "caleb-portrait-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-20",
+  "observability": { "enabled": true },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "portrait-context",
+      "database_id": "4fe51b7a-d4a6-4b2b-9689-3c09bb89abcc"
+    }
+  ],
+  "vars": {
+    "ALLOWED_ORIGIN": "https://chaymore.github.io",
+    "OPENROUTER_MODEL": "openai/gpt-4o-mini",
+    "TTS_MODEL": "microsoft/mai-voice-2-flash",
+    "TTS_VOICE": "en-US-Harper:MAI-Voice-2"
+  }
+}
