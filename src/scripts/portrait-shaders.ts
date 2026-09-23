@@ -15,6 +15,40 @@ export const aperture = /* glsl */ `
 export const deform = /* glsl */ `
   uniform vec3 mouth;
   uniform vec3 mouthCenter;
+  uniform float blink;
+  uniform float brow;
+  float eyeMask(vec2 p, vec2 c, vec2 r) {
+    return 1. - smoothstep(.78, 1.18, length((p - c) / r));
+  }
+  float blinkIris(vec3 p) {
+    float front = smoothstep(.42, .62, p.z);
+    float left = eyeMask(p.xy, vec2(-.163, .490), vec2(.052, .028));
+    float right = eyeMask(p.xy, vec2(.298, .493), vec2(.085, .032));
+    return max(left, right) * front;
+  }
+  float blinkLid(vec3 p) {
+    float front = smoothstep(.42, .62, p.z);
+    float left = eyeMask(p.xy, vec2(-.163, .508), vec2(.072, .022));
+    float right = eyeMask(p.xy, vec2(.298, .512), vec2(.110, .026));
+    return max(left, right) * front;
+  }
+  vec3 express(vec3 p) {
+    float front = smoothstep(.38, .62, p.z);
+    float leftEye = eyeMask(p.xy, vec2(-.163, .490), vec2(.078, .042));
+    float rightEye = eyeMask(p.xy, vec2(.298, .493), vec2(.125, .048));
+    float leftUpper = leftEye * smoothstep(-.1, .55, (p.y - .490) / .042);
+    float rightUpper = rightEye * smoothstep(-.1, .55, (p.y - .493) / .048);
+    float upper = max(leftUpper, rightUpper) * front;
+    float leftLower = leftEye * smoothstep(.2, -.6, (p.y - .490) / .042);
+    float rightLower = rightEye * smoothstep(.2, -.6, (p.y - .493) / .048);
+    float lower = max(leftLower, rightLower) * front;
+    p.y -= blink * .052 * upper;
+    p.y += blink * .012 * lower;
+    float leftBrow = eyeMask(p.xy, vec2(-.145, .590), vec2(.115, .028));
+    float rightBrow = eyeMask(p.xy, vec2(.279, .564), vec2(.145, .032));
+    p.y += brow * .018 * max(leftBrow, rightBrow) * front;
+    return p;
+  }
   vec3 speak(vec3 p) {
     float front = smoothstep(.15, .5, p.z);
     float across = 1. - smoothstep(.24, .58, abs(p.x-mouthCenter.x));
@@ -30,7 +64,7 @@ export const deform = /* glsl */ `
     p.x = mix(p.x, mouthCenter.x + (p.x-mouthCenter.x)*(1.-mouth.y*.18+mouth.z*.12), lips);
     p.z += mouth.y * .025 * lips;
     p.y += mouth.x * .008 * lips * (1.-lower);
-    return p;
+    return express(p);
   }
 `;
 export const pointVertex = /* glsl */ `
@@ -62,7 +96,9 @@ export const pointVertex = /* glsl */ `
     float darkDetail = smoothstep(.52,.82,1.-shade);
     float front = smoothstep(.4,.56,position.z);
     float eyeLift = front * darkDetail * (.22*iris + .12*upperLid);
-    float size = baseSize * (1.+eyeLift) * pointScale;
+    float size = baseSize * (1.+eyeLift * (1.-blink)) * pointScale;
+    size *= mix(1., .04, blinkIris(position) * blink);
+    size *= 1. + blinkLid(position) * blink * 1.1;
     visible = ascii > .5 && seed > .18 ? 0. : 1.;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(p,1.);
     gl_Position.z -= .0008 * gl_Position.w;

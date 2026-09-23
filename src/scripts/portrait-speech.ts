@@ -1,3 +1,5 @@
+import { SpeechVisemes } from './portrait-visemes.ts';
+
 export type MouthShape = { open: number; round: number; wide: number };
 export type Viseme = 'rest' | 'A' | 'E' | 'I' | 'O' | 'U' | 'MBP' | 'FV' | 'L';
 export type VisemeCue = { start: number; end: number; shape: Viseme };
@@ -19,6 +21,9 @@ export function cueAt(cues: VisemeCue[], time: number): MouthShape {
   const cue = cues.find(c => time >= c.start && time < c.end);
   return cue ? SHAPES[cue.shape] : REST;
 }
+export function visemeAt(cues: VisemeCue[], time: number): Viseme {
+  return cues.find(c => time >= c.start && time < c.end)?.shape ?? 'rest';
+}
 export function validateCues(cues: VisemeCue[]): VisemeCue[] {
   return cues.filter(c => Number.isFinite(c.start) && Number.isFinite(c.end) && c.start >= 0 && c.end > c.start && Object.hasOwn(SHAPES, c.shape))
     .map(c => ({ ...c })).sort((a,b) => a.start-b.start);
@@ -30,20 +35,25 @@ export class PortraitSpeech {
   private mediaNodes = new Map<HTMLMediaElement, MediaElementAudioSourceNode>();
   private analyser?: AnalyserNode;
   private source?: AudioNode;
-  private samples = new Float32Array(1024);
-  private spectrum = new Uint8Array(512);
+  private samples = new Float32Array(2048);
+  private spectrum = new Uint8Array(1024);
+  private sampleRate = 48000;
+  private fftSize = 2048;
+  private audioMs = 0;
+  private lips = new SpeechVisemes();
   private manual: MouthShape = { ...REST };
   private mode: 'manual' | 'audio' | 'visemes' = 'manual';
   private cues: VisemeCue[] = [];
   private clock: () => number = () => 0;
   private connection = 0;
   readonly current: MouthShape = { ...REST };
+  viseme: Viseme = 'rest';
 
   setMouth(shape: Partial<MouthShape>) { this.mode = 'manual'; this.manual = cleanShape(shape); }
   setVisemes(cues: VisemeCue[], clock: () => number) {
     this.cues = validateCues(cues); this.clock = clock; this.mode = 'visemes';
   }
-  reset() { this.mode = 'manual'; this.manual = { ...REST }; }
+  reset() { this.mode = 'manual'; this.manual = { ...REST }; this.viseme = 'rest'; this.audioMs = 0; this.lips.reset(); }
   disconnect() {
     this.connection++;
     if (this.source && this.analyser) this.source.disconnect(this.analyser);
@@ -74,30 +84,36 @@ export class PortraitSpeech {
     if (context.state === 'suspended') await context.resume();
     if (connection !== this.connection) return () => {};
     const analyser = context.createAnalyser();
-    analyser.fftSize = 1024; analyser.smoothingTimeConstant = .5;
+    analyser.fftSize = 2048; analyser.smoothingTimeConstant = .5;
+    this.samples = new Float32Array(analyser.fftSize || 2048);
+    this.spectrum = new Uint8Array(analyser.frequencyBinCount || (analyser.fftSize || 2048) / 2);
+    this.sampleRate = context.sampleRate || 48000;
+    this.fftSize = analyser.fftSize || 2048;
     source.connect(analyser); this.source = source; this.analyser = analyser;
     this.mode = 'audio';
     return () => { if (connection === this.connection) this.disconnect(); };
   }
   update(dt: number): MouthShape {
     let target = this.manual;
-    if (this.mode === 'visemes') target = cueAt(this.cues, this.clock());
-    if (this.mode === 'audio' && this.analyser) {
+    if (this.mode === 'visemes') {
+      const time = this.clock();
+      this.viseme = visemeAt(this.cues, time);
+      target = SHAPES[this.viseme];
+    } else if (this.mode === 'audio' && this.analyser) {
       this.analyser.getFloatTimeDomainData(this.samples);
       let sum = 0;
       for (const value of this.samples) sum += value*value;
-      const open = levelToMouth(Math.sqrt(sum/this.samples.length));
+      const rms = Math.sqrt(sum/this.samples.length);
       this.analyser.getByteFrequencyData(this.spectrum);
-      let low = 0, high = 0;
-      for (let i=2; i<14; i++) low += this.spectrum[i];
-      for (let i=18; i<60; i++) high += this.spectrum[i];
-      const brightness = high/(low+high+1);
-      // A speech-like fallback, not a phoneme recognizer. Timed visemes take precedence.
-      target = { open, round: open * Math.max(0, .7-brightness), wide: open * brightness * .65 };
-    }
+      this.audioMs += Math.min(100, Math.max(0, Number.isFinite(dt) ? dt*1000 : 0));
+      const detected = this.lips.read(this.spectrum, this.sampleRate, this.fftSize, this.audioMs);
+      // The noise gate stays on waveform energy. Shape comes from the viseme, not loudness.
+      if (levelToMouth(rms) === 0) { this.viseme = 'rest'; target = REST; }
+      else { this.viseme = detected; target = SHAPES[detected]; }
+    } else this.viseme = 'rest';
     const step = Math.max(0, Math.min(.1, Number.isFinite(dt) ? dt : 0));
     for (const key of ['open','round','wide'] as const) {
-      const speed = target[key] > this.current[key] ? 24 : 15;
+      const speed = target[key] > this.current[key] ? 36 : 28;
       this.current[key] += (target[key]-this.current[key]) * (1-Math.exp(-step*speed));
       if (this.current[key] < .0001) this.current[key] = 0;
     }

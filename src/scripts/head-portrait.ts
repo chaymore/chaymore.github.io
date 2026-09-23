@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { PortraitSpeech, type MouthShape, type VisemeCue } from './portrait-speech';
 import { pointVertex, pointFragment, surfaceVertex, surfaceFragment } from './portrait-shaders';
 import { portraitTurn } from './portrait-turn.ts';
+import { createFaceMotion } from './portrait-face.ts';
 
 export interface PortraitAPI {
   setMouth(shape: Partial<MouthShape>): void;
@@ -19,6 +20,7 @@ export async function initHeadPortrait(root: HTMLElement) {
   const events = new AbortController();
   const disposable: { dispose(): void }[] = [];
   const speech = new PortraitSpeech();
+  const face = createFaceMotion();
   let playing = !reducedMotion.matches, dragging = false, attention = false;
   let previousX = 0, previousY = 0, frame = 0;
   let renderer: THREE.WebGLRenderer | undefined;
@@ -54,7 +56,7 @@ export async function initHeadPortrait(root: HTMLElement) {
     const ctx=atlas.getContext('2d')!; ctx.fillStyle='#fff';ctx.font='48px monospace';ctx.textAlign='center';ctx.textBaseline='middle';
     ['.',':','-','+','=','*','#','@'].forEach((glyph,i)=>ctx.fillText(glyph,i*64+32,33));
     const glyphs=new THREE.CanvasTexture(atlas); disposable.push(glyphs);
-    const uniforms={mouth:{value:new THREE.Vector3()},mouthCenter:{value:new THREE.Vector3(...meta.mouth)},pixelRatio:{value:renderer.getPixelRatio()},pointScale:{value:1},ascii:{value:0},glyphs:{value:glyphs}};
+    const uniforms={mouth:{value:new THREE.Vector3()},mouthCenter:{value:new THREE.Vector3(...meta.mouth)},pixelRatio:{value:renderer.getPixelRatio()},pointScale:{value:1},ascii:{value:0},glyphs:{value:glyphs},blink:{value:0},brow:{value:0}};
     const material=new THREE.ShaderMaterial({uniforms,vertexShader:pointVertex,fragmentShader:pointFragment}); disposable.push(material);
     const depthMaterial=new THREE.ShaderMaterial({uniforms,vertexShader:surfaceVertex,fragmentShader:surfaceFragment,colorWrite:false,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:2,polygonOffsetUnits:2}); disposable.push(depthMaterial);
     const bust=new THREE.Group();
@@ -127,7 +129,12 @@ export async function initHeadPortrait(root: HTMLElement) {
         const oldOpen=uniforms.mouth.value.x,oldRound=uniforms.mouth.value.y,oldWide=uniforms.mouth.value.z;
         const shape=speech.update(dt);uniforms.mouth.value.set(shape.open,shape.round,shape.wide);
         canvas.dataset.mouthOpen=shape.open.toFixed(3);
-        if(shape.open>.025)lastSpeech=time;
+        canvas.dataset.viseme=speech.viseme;
+        if(shape.open>.025||speech.viseme!=='rest')lastSpeech=time;
+        const pose=face.update(dt,{speaking:time-lastSpeech<500,reducedMotion:reducedMotion.matches});
+        const faceShift=Math.abs(uniforms.blink.value-pose.blink)+Math.abs(uniforms.brow.value-pose.brow);
+        uniforms.blink.value=pose.blink;uniforms.brow.value=pose.brow;
+        canvas.dataset.blink=pose.blink.toFixed(2);
         const turn=portraitTurn({attention,playing,dragging,speaking:time-lastSpeech<500,warmedUp:time-started>2500});
         let posed=false;
         if(turn==='front'&&(bust.rotation.x||bust.rotation.y||bust.rotation.z)){bust.rotation.set(0,0,0);posed=true;}
@@ -137,7 +144,7 @@ export async function initHeadPortrait(root: HTMLElement) {
           bust.rotation.x*=Math.exp(-dt*6);
         }
         if(turn==='idle')bust.rotation.y+=dt*.08;
-        if(turn==='idle'||turn==='face'||posed||Math.abs(oldOpen-shape.open)+Math.abs(oldRound-shape.round)+Math.abs(oldWide-shape.wide)>.00001)render();
+        if(turn==='idle'||turn==='face'||posed||faceShift>.00001||Math.abs(oldOpen-shape.open)+Math.abs(oldRound-shape.round)+Math.abs(oldWide-shape.wide)>.00001)render();
       }
       frame=requestAnimationFrame(animate);
     };

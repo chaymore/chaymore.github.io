@@ -103,6 +103,6 @@ For local Astro, use `PUBLIC_PORTRAIT_API_URL=http://localhost:8787 npm run dev`
 
 The **mic** control sits in the existing Ask Caleb composer. Tap it to talk, or hold it and release to send. Browsers with `SpeechRecognition` or `webkitSpeechRecognition` (Chrome and Safari, including their mobile versions, on localhost or HTTPS) transcribe speech on the device’s speech service. Firefox and other browsers without that API keep typed questions working and show “Speech input isn’t available in this browser.” Denying the microphone shows “Microphone permission denied.” Silence shows “Didn’t catch that.”
 
-Nothing in this path calls `getUserMedia` for the portrait. `window.calebPortrait.connectAudio` still receives only the reply audio element.
+Nothing in this path calls `getUserMedia` for the portrait. `window.calebPortrait.connectAudio` still receives only the reply audio element, which now drives mouth shapes from visemes instead of volume alone.
 
 To try it against a live Worker, set `PUBLIC_PORTRAIT_API_URL` to the deployed Worker URL and open the site from an allowed origin (`https://calebhaymore.com`, `https://chaymore.github.io`, or local `http://localhost` / `http://127.0.0.1`). Allow the microphone, ask a short question, and confirm the transcript and the streamed answer both appear as text before the face speaks. Typed questions should behave as before when the mic is left unused.
