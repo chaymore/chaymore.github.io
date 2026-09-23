@@ -8,7 +8,7 @@
     {
       "binding": "DB",
       "database_name": "portrait-context",
-      "database_id": "REPLACE_WITH_D1_DATABASE_ID"
+      "database_id": "4fe51b7a-d4a6-4b2b-9689-3c09bb89abcc"
     }
   ],
   "vars": {
