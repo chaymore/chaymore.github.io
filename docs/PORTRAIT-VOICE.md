@@ -35,9 +35,9 @@ portrait.setVisemes([
 
 Timed shapes override amplitude animation. Gaps and the end of the cue sequence return to rest. Pause/stop handlers should call `resetMouth()` to close the mouth; on resume, reinstall the cues and clock. This rig approximates shape families and does not model teeth or tongue articulation.
 
-For direct control, call `setMouth({ open, round, wide })` with values between 0 and 1. `resetMouth()` returns to rest; `disconnectAudio()` also removes analysis. External control stops the built-in demonstration. Mouth transitions are smoothed, and the portrait faces forward while speaking.
+For direct control, call `setMouth({ open, round, wide })` with values between 0 and 1. `resetMouth()` returns to rest; `disconnectAudio()` also removes analysis. Mouth transitions are smoothed, and the portrait eases forward while a reply is playing.
 
-The “Test speech” control plays a local generic system voice, clearly labeled as a sample. It is not Caleb’s voice.
+Opening Ask Caleb snaps the bust to face the camera and holds that pose until the panel closes. Replies drive the mouth from `POST /speak`. The homepage has no separate sample-voice control.
 
 ## Verification
 

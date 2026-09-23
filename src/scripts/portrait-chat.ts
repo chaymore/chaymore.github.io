@@ -40,8 +40,18 @@ export function initPortraitChat(root: HTMLElement) {
       }, { lang: navigator.language || 'en-US' })
     : null;
 
-  const show = () => { panel.hidden = false; toggle.setAttribute('aria-expanded', 'true'); input.focus(); };
-  const hide = () => { panel.hidden = true; toggle.setAttribute('aria-expanded', 'false'); session?.abort(); };
+  const show = () => {
+    panel.hidden = false;
+    toggle.setAttribute('aria-expanded', 'true');
+    root.dataset.attention = 'front';
+    input.focus();
+  };
+  const hide = () => {
+    panel.hidden = true;
+    toggle.setAttribute('aria-expanded', 'false');
+    delete root.dataset.attention;
+    session?.abort();
+  };
   toggle.addEventListener('click', () => panel.hidden ? show() : hide());
   close.addEventListener('click', hide);
   replay.addEventListener('click', () => lastAnswer && playAnswer(lastAnswer));

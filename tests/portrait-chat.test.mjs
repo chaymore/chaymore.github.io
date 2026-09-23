@@ -279,11 +279,13 @@ test('closing the panel or typing over an open mic does not submit the partial p
   initPortraitChat(ui.root);
   ui.toggle.dispatch('click', { detail: 1, preventDefault() {} });
   assert.equal(ui.panel.hidden, false);
+  assert.equal(ui.root.dataset.attention, 'front');
   ui.mic.dispatch('pointerdown', { button: 0, pointerId: 4, preventDefault() {} });
   FakeRecognition.latest.emit([['partial phrase', false]]);
   ui.close.dispatch('click', { detail: 1, preventDefault() {} });
   await flush();
   assert.equal(ui.panel.hidden, true);
+  assert.equal(ui.root.dataset.attention, undefined);
   assert.equal(browser.calls.length, 0);
 
   ui.mic.dispatch('pointerdown', { button: 0, pointerId: 5, preventDefault() {} });
