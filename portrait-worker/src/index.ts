@@ -219,18 +219,22 @@ function validateChunk(value: unknown): ContextChunk | null {
 
 function originAllowed(request: Request, env: Env) {
   const origin = request.headers.get('origin');
-  return !origin || origin === env.ALLOWED_ORIGIN || /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin);
+  return !origin || allowedOrigins(env).includes(origin) || /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin);
 }
 
 function corsHeaders(request: Request, env: Env): HeadersInit {
   const origin = request.headers.get('origin');
-  const allowed = origin && originAllowed(request, env) ? origin : env.ALLOWED_ORIGIN;
+  const allowed = origin && originAllowed(request, env) ? origin : allowedOrigins(env)[0];
   return {
     'access-control-allow-origin': allowed,
     'access-control-allow-methods': 'GET, POST, OPTIONS',
     'access-control-allow-headers': 'content-type, authorization',
     'vary': 'Origin',
   };
+}
+
+function allowedOrigins(env: Env) {
+  return env.ALLOWED_ORIGIN.split(',').map(origin => origin.trim()).filter(Boolean);
 }
 
 async function readJson<T>(request: Request): Promise<T> {
