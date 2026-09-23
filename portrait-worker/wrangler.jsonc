@@ -13,8 +13,8 @@
   ],
   "vars": {
     "ALLOWED_ORIGIN": "https://chaymore.github.io",
-    "OPENAI_MODEL": "gpt-5.6-luna",
-    "TTS_MODEL": "gpt-4o-mini-tts",
-    "TTS_VOICE": "coral"
+    "OPENROUTER_MODEL": "openai/gpt-4o-mini",
+    "TTS_MODEL": "microsoft/mai-voice-2-flash",
+    "TTS_VOICE": "en-US-Harper:MAI-Voice-2"
   }
 }
