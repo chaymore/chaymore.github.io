@@ -1,6 +1,6 @@
 # Portrait Q&A deployment
 
-The code is complete, but three services must be connected once: Cloudflare, OpenAI, and a read-only Google service account. No secret belongs in the repository or the browser.
+The code is complete, but three services must be connected once: Cloudflare, OpenRouter, and a read-only Google service account. No secret belongs in the repository or the browser. If an API key was pasted into chat, revoke it and create a new one before deployment.
 
 ## 1. Create D1 and deploy the Worker
 
@@ -16,7 +16,7 @@ Copy the returned database ID into `portrait-worker/wrangler.jsonc`, replacing `
 
 ```sh
 npm run db:init:remote
-npx wrangler secret put OPENAI_API_KEY
+npx wrangler secret put OPENROUTER_API_KEY
 npx wrangler secret put SYNC_TOKEN
 npx wrangler secret put RATE_LIMIT_SALT
 npm run deploy
@@ -24,7 +24,7 @@ npm run deploy
 
 Use separate long random values for `SYNC_TOKEN` and `RATE_LIMIT_SALT`. Save the deployed `https://…workers.dev` URL.
 
-The default text model is `gpt-5.6-luna`; the default speech model is `gpt-4o-mini-tts`. Both can be changed in `wrangler.jsonc`. The UI identifies the sound as AI-generated.
+The default text model is `openai/gpt-4o-mini`; the default speech model is `microsoft/mai-voice-2-flash` with its supported `en-US-Harper:MAI-Voice-2` voice. Both can be changed in `wrangler.jsonc`. This is a synthetic voice, not a clone of Caleb's voice. The UI identifies the sound as AI-generated.
 
 ## 2. Enable the homepage
 
@@ -40,16 +40,17 @@ Re-run **Deploy to GitHub Pages**, or push a commit. The site build embeds only 
 
 In Google Cloud:
 
-1. Enable the Google Drive API.
-2. Create a service account and JSON key.
-3. Share the Knowledge Wiki root folder with the service account email as **Viewer**.
+1. In [Google Cloud Console](https://console.cloud.google.com/apis/library/drive.googleapis.com), select or create a project and enable the **Google Drive API**.
+2. In **IAM & Admin → Service Accounts**, create a service account such as `portrait-context-reader`. You do not need to grant it project roles or enable domain-wide delegation.
+3. Open the new service account, choose **Keys → Add key → Create new key → JSON**, and save the downloaded file securely. It cannot be downloaded again.
+4. Share only the wiki's curated **Public Portrait Context** folder with the service account email as **Viewer** (deselect **Notify people**). Do **not** share the entire private Knowledge Wiki.
 
 Add these GitHub Actions secrets:
 
 | Secret | Value |
 | --- | --- |
-| `DRIVE_WIKI_FOLDER_ID` | `1J2DxQraTRXJRwTnpJp3r315Vqx81Up48` |
-| `GOOGLE_SERVICE_ACCOUNT_JSON` | Complete service-account JSON |
+| `DRIVE_WIKI_FOLDER_ID` | `1jRZfC47H6li57fnxvu63_D2OLL_SruBx` (Public Portrait Context folder only) |
+| `GOOGLE_SERVICE_ACCOUNT_JSON` | Complete downloaded service-account JSON; store as a GitHub Actions secret, never paste it in chat |
 | `PORTRAIT_SYNC_URL` | Deployed Worker URL |
 | `PORTRAIT_SYNC_TOKEN` | Same value stored as the Worker `SYNC_TOKEN` |
 
@@ -83,7 +84,7 @@ A curated `Public Portrait Context/portrait-profile` source already exists in th
 Create `portrait-worker/.dev.vars` (gitignored):
 
 ```dotenv
-OPENAI_API_KEY=...
+OPENROUTER_API_KEY=...
 SYNC_TOKEN=...
 RATE_LIMIT_SALT=...
 ```
