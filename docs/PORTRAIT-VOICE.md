@@ -18,6 +18,8 @@ Remote audio needs appropriate CORS headers; set `audioElement.crossOrigin = 'an
 
 `connectAudio` accepts an HTMLMediaElement, AudioNode, or MediaStream. An HTML element retains audible playback through the portrait’s audio context. If an element already has a MediaElementAudioSourceNode, pass that existing node instead. For AudioNode and MediaStream input, the caller owns audible output routing; the portrait adds an analysis branch only. It never requests microphone access. Reconnecting replaces analysis of the previous source. The returned disconnect function is safe to call after another source has replaced it.
 
+Ask Caleb speech input is separate from this bridge. The mic control uses the browser Web Speech API and sends only the resulting text to `POST /ask`. Do not pass the microphone, a `MediaStream` from `getUserMedia`, or the recognition session into `connectAudio`. Mouth motion stays on the reply audio from `POST /speak`.
+
 Amplitude controls jaw opening; a rough frequency balance adjusts lip shape. This fallback responds to sound and silence but does not recognize phonemes.
 
 ## Timed mouth shapes
@@ -33,9 +35,9 @@ portrait.setVisemes([
 
 Timed shapes override amplitude animation. Gaps and the end of the cue sequence return to rest. Pause/stop handlers should call `resetMouth()` to close the mouth; on resume, reinstall the cues and clock. This rig approximates shape families and does not model teeth or tongue articulation.
 
-For direct control, call `setMouth({ open, round, wide })` with values between 0 and 1. `resetMouth()` returns to rest; `disconnectAudio()` also removes analysis. External control stops the built-in demonstration. Mouth transitions are smoothed, and the portrait faces forward while speaking.
+For direct control, call `setMouth({ open, round, wide })` with values between 0 and 1. `resetMouth()` returns to rest; `disconnectAudio()` also removes analysis. Mouth transitions are smoothed, and the portrait eases forward while a reply is playing.
 
-The “Test speech” control plays a local generic system voice, clearly labeled as a sample. It is not Caleb’s voice.
+Opening Ask Caleb snaps the bust to face the camera and holds that pose until the panel closes. Replies drive the mouth from `POST /speak`. The homepage has no separate sample-voice control.
 
 ## Verification
 

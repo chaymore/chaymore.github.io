@@ -11,7 +11,7 @@ Public asset format (version 2, little-endian):
 - `bust.json`: point count, position scale, bounds, and mouth center.
 - `bust-points.bin`: seven int16 values per point: xyz / 8192, normal xyz / 32767, luminance / 32767.
 - `bust-surface.bin`: unindexed triangle xyz positions, int16 / 8192.
-- `speech-preview.mp3`: generic system voice demonstration, not a voice clone.
+- `speech-preview.mp3`: unused generic sample kept with the portrait assets. The homepage does not play it.
 
 The source movie, full-body mesh, and original color textures remain outside the public website. Public geometry contains only the cropped bust. Uneven capture lighting and expression changes remain limitations of the scan.
 

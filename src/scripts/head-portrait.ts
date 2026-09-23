@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { PortraitSpeech, type MouthShape, type VisemeCue } from './portrait-speech';
 import { pointVertex, pointFragment, surfaceVertex, surfaceFragment } from './portrait-shaders';
+import { portraitTurn } from './portrait-turn.ts';
 
 export interface PortraitAPI {
   setMouth(shape: Partial<MouthShape>): void;
@@ -14,25 +15,22 @@ declare global { interface Window { calebPortrait?: PortraitAPI } }
 export async function initHeadPortrait(root: HTMLElement) {
   const canvas = root.querySelector('canvas')!;
   const status = root.querySelector<HTMLElement>('[data-load-status]')!;
-  const motionButton = root.querySelector<HTMLButtonElement>('[data-motion]')!;
-  const speechButton = root.querySelector<HTMLButtonElement>('[data-speech]')!;
-  const speechNote = root.querySelector<HTMLElement>('[data-speech-note]')!;
-  const audio = root.querySelector<HTMLAudioElement>('audio')!;
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
   const events = new AbortController();
   const disposable: { dispose(): void }[] = [];
   const speech = new PortraitSpeech();
-  let playing = !reducedMotion.matches, dragging = false;
-  let previousX = 0, previousY = 0, frame = 0, demoActive = false;
+  let playing = !reducedMotion.matches, dragging = false, attention = false;
+  let previousX = 0, previousY = 0, frame = 0;
   let renderer: THREE.WebGLRenderer | undefined;
   let observer: ResizeObserver | undefined;
+  let attentionObserver: MutationObserver | undefined;
   const dispose = () => {
-    events.abort(); cancelAnimationFrame(frame); observer?.disconnect();
-    audio.pause(); speech.dispose(); disposable.forEach(item => item.dispose());
+    events.abort(); cancelAnimationFrame(frame); observer?.disconnect(); attentionObserver?.disconnect();
+    speech.dispose(); disposable.forEach(item => item.dispose());
     renderer?.dispose(); delete window.calebPortrait;
   };
   const on = <K extends keyof HTMLElementEventMap>(target: HTMLElement, name: K, handler: (event: HTMLElementEventMap[K]) => void) => target.addEventListener(name, handler, {signal:events.signal});
-  addEventListener('pagehide', e => { if(!e.persisted) dispose(); else { audio.pause(); speech.disconnect(); demoActive=false; speechButton.textContent='Test speech'; speechButton.setAttribute('aria-label','Test speaking animation'); speechNote.hidden=true; } }, {signal:events.signal});
+  addEventListener('pagehide', e => { if(!e.persisted) dispose(); else speech.disconnect(); }, {signal:events.signal});
   try {
     renderer = new THREE.WebGLRenderer({canvas, antialias:true});
     renderer.setClearColor(0xffffff);
@@ -94,43 +92,32 @@ export async function initHeadPortrait(root: HTMLElement) {
     };
     observer=new ResizeObserver(resize);observer.observe(root);
     status.hidden=true;
-    for(const button of [motionButton,speechButton])button.disabled=false;
-    const updateMotion=()=>{motionButton.textContent=playing?'Pause':'Rotate';motionButton.setAttribute('aria-label',playing?'Pause rotation':'Start rotation');};
-    updateMotion();
-    on(motionButton,'click',()=>{playing=!playing;updateMotion();});
-    reducedMotion.addEventListener('change',()=>{playing=!reducedMotion.matches;updateMotion();},{signal:events.signal});
-    on(canvas,'pointerdown',e=>{dragging=true;previousX=e.clientX;previousY=e.clientY;canvas.setPointerCapture(e.pointerId);});
+    reducedMotion.addEventListener('change',()=>{playing=!reducedMotion.matches;},{signal:events.signal});
+    const holdFront=()=>{dragging=false;bust.rotation.set(0,0,0);render();};
+    const syncAttention=()=>{
+      attention=root.dataset.attention==='front';
+      if(attention)holdFront();
+    };
+    syncAttention();
+    attentionObserver=new MutationObserver(syncAttention);
+    attentionObserver.observe(root,{attributes:true,attributeFilter:['data-attention']});
+    on(canvas,'pointerdown',e=>{if(attention)return;dragging=true;previousX=e.clientX;previousY=e.clientY;canvas.setPointerCapture(e.pointerId);});
     on(canvas,'pointermove',e=>{if(!dragging)return;bust.rotation.y+=(e.clientX-previousX)*.008;bust.rotation.x=THREE.MathUtils.clamp(bust.rotation.x+(e.clientY-previousY)*.005,-.3,.3);previousX=e.clientX;previousY=e.clientY;render();});
     on(canvas,'pointerup',()=>{dragging=false;});on(canvas,'pointercancel',()=>{dragging=false;});on(canvas,'lostpointercapture',()=>{dragging=false;});
     on(canvas,'keydown',e=>{
-      if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' ','Home'].includes(e.key))e.preventDefault();
+      if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home'].includes(e.key))e.preventDefault();
+      if(attention)return;
       if(e.key==='ArrowLeft')bust.rotation.y-=.12;if(e.key==='ArrowRight')bust.rotation.y+=.12;
       if(e.key==='ArrowUp')bust.rotation.x=Math.max(-.3,bust.rotation.x-.08);if(e.key==='ArrowDown')bust.rotation.x=Math.min(.3,bust.rotation.x+.08);
       if(e.key==='Home')bust.rotation.set(0,0,0);
-      if(e.key===' '){playing=!playing;updateMotion();}render();
+      render();
     });
-    let disconnectDemo:(()=>void)|undefined;
-    const stopDemo=()=>{demoActive=false;audio.pause();disconnectDemo?.();disconnectDemo=undefined;speech.reset();speechButton.textContent='Test speech';speechButton.setAttribute('aria-label','Test speaking animation');speechNote.hidden=true;};
-    on(speechButton,'click',async()=>{
-      if(demoActive){stopDemo();return;}
-      demoActive=true;playing=false;updateMotion();bust.rotation.set(0,0,0);
-      speechButton.textContent='Stop';speechButton.setAttribute('aria-label','Stop speaking preview');
-      speechNote.textContent='Sample voice · not a voice clone';speechNote.hidden=false;
-      try{
-        disconnectDemo=await speech.connectAudio(audio);
-        if(!demoActive){disconnectDemo();return;}
-        audio.currentTime=0;await audio.play();
-      }catch(error){stopDemo();speechNote.textContent='Audio preview unavailable. Try again.';speechNote.hidden=false;console.error(error);}
-    });
-    on(audio,'ended',stopDemo);on(audio,'error',stopDemo);
-    document.addEventListener('visibilitychange',()=>{if(document.hidden&&demoActive)stopDemo();},{signal:events.signal});
-    const takeControl=()=>{if(demoActive)stopDemo();};
     const api:PortraitAPI={
-      setMouth:s=>{takeControl();speech.setMouth(s);},
-      resetMouth:()=>{takeControl();speech.reset();},
-      connectAudio:input=>{takeControl();return speech.connectAudio(input);},
-      setVisemes:(c,clock)=>{takeControl();speech.setVisemes(c,clock);},
-      disconnectAudio:()=>{takeControl();speech.disconnect();},
+      setMouth:s=>{speech.setMouth(s);},
+      resetMouth:()=>{speech.reset();},
+      connectAudio:input=>speech.connectAudio(input),
+      setVisemes:(c,clock)=>{speech.setVisemes(c,clock);},
+      disconnectAudio:()=>{speech.disconnect();},
     };
     window.calebPortrait=api;window.dispatchEvent(new CustomEvent('portrait:ready',{detail:api}));
     let previous=performance.now();const started=previous;let lastSpeech=-Infinity;
@@ -141,16 +128,16 @@ export async function initHeadPortrait(root: HTMLElement) {
         const shape=speech.update(dt);uniforms.mouth.value.set(shape.open,shape.round,shape.wide);
         canvas.dataset.mouthOpen=shape.open.toFixed(3);
         if(shape.open>.025)lastSpeech=time;
-        const speaking=time-lastSpeech<500;
-        const moving=playing&&!dragging&&!speaking&&time-started>2500;
-        const orienting=speaking&&!dragging;
-        if(orienting){
+        const turn=portraitTurn({attention,playing,dragging,speaking:time-lastSpeech<500,warmedUp:time-started>2500});
+        let posed=false;
+        if(turn==='front'&&(bust.rotation.x||bust.rotation.y||bust.rotation.z)){bust.rotation.set(0,0,0);posed=true;}
+        if(turn==='face'){
           const angle=Math.atan2(Math.sin(bust.rotation.y),Math.cos(bust.rotation.y));
           bust.rotation.y-=angle*(1.-Math.exp(-dt*6));
           bust.rotation.x*=Math.exp(-dt*6);
         }
-        if(moving)bust.rotation.y+=dt*.08;
-        if(moving||orienting||Math.abs(oldOpen-shape.open)+Math.abs(oldRound-shape.round)+Math.abs(oldWide-shape.wide)>.00001)render();
+        if(turn==='idle')bust.rotation.y+=dt*.08;
+        if(turn==='idle'||turn==='face'||posed||Math.abs(oldOpen-shape.open)+Math.abs(oldRound-shape.round)+Math.abs(oldWide-shape.wide)>.00001)render();
       }
       frame=requestAnimationFrame(animate);
     };
