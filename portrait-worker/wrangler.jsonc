@@ -15,6 +15,15 @@
     "ALLOWED_ORIGIN": "https://calebhaymore.com,https://chaymore.github.io",
     "OPENROUTER_MODEL": "openai/gpt-4o-mini",
     "TTS_MODEL": "microsoft/mai-voice-2-flash",
-    "TTS_VOICE": "en-US-Harper:MAI-Voice-2"
+    "TTS_VOICE": "en-US-Harper:MAI-Voice-2",
+    "FISH_TTS_MODEL": "fish-audio/s2.1-pro-free:free"
   }
+  // Voice clone stays off until a reference is configured. See docs/VOICE-CLONE.md.
+  // Paid Fish model: set FISH_TTS_MODEL to "fish-audio/s2.1-pro".
+  // Secret placeholder (not a var): FISH_REFERENCE_ID
+  // Optional transcript secret: FISH_REFERENCE_TRANSCRIPT
+  // Optional R2 clip. A 20–45s recording does not fit in a Worker secret.
+  // "r2_buckets": [
+  //   { "binding": "VOICE_REFERENCE", "bucket_name": "portrait-voice" }
+  // ]
 }

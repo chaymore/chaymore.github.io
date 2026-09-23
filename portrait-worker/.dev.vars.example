@@ -1,0 +1,13 @@
+OPENROUTER_API_KEY=
+SYNC_TOKEN=
+RATE_LIMIT_SALT=
+# Used only after a reference is configured. Paid model: fish-audio/s2.1-pro
+# FISH_TTS_MODEL=fish-audio/s2.1-pro-free:free
+# Fish voice-library id (native reference_id). Wins over a clip.
+# FISH_REFERENCE_ID=
+# Exact words spoken in the reference clip. Optional.
+# FISH_REFERENCE_TRANSCRIPT=
+# R2 object key when it is not caleb-reference.wav. Requires the VOICE_REFERENCE binding.
+# FISH_REFERENCE_KEY=caleb-reference.wav
+# Local only. A real 20–45s clip exceeds the 5 KB deployed secret limit; use R2.
+# FISH_REFERENCE_AUDIO=

@@ -1,12 +1,12 @@
-interface Env {
+import { planSpeech, speechResponseHeaders, voiceStatus, VoiceReferenceError, type SpeechEnv } from './speech';
+
+interface Env extends SpeechEnv {
   DB: D1Database;
   OPENROUTER_API_KEY: string;
   SYNC_TOKEN: string;
   RATE_LIMIT_SALT: string;
   ALLOWED_ORIGIN: string;
   OPENROUTER_MODEL?: string;
-  TTS_MODEL?: string;
-  TTS_VOICE?: string;
 }
 
 interface ContextChunk {
@@ -32,7 +32,7 @@ export default {
     try {
       if (url.pathname === '/health' && request.method === 'GET') {
         const row = await env.DB.prepare('SELECT COUNT(*) AS count FROM context_chunks').first<{ count: number }>();
-        return responseJson({ ok: true, chunks: row?.count ?? 0 }, 200, cors);
+        return responseJson({ ok: true, chunks: row?.count ?? 0, voice: await voiceStatus(env) }, 200, cors);
       }
       if (url.pathname === '/admin/sync' && request.method === 'POST') return syncContext(request, env, cors);
       if (url.pathname === '/ask' && request.method === 'POST') return ask(request, env, cors);
@@ -90,24 +90,25 @@ async function speak(request: Request, env: Env, cors: HeadersInit): Promise<Res
   const text = typeof body.text === 'string' ? body.text.trim().slice(0, 1800) : '';
   if (!text) return responseJson({ error: 'No speech supplied.' }, 400, cors);
 
+  let plan;
+  try {
+    plan = await planSpeech(text, env);
+  } catch (error) {
+    if (!(error instanceof VoiceReferenceError)) throw error;
+    console.error('Voice reference', error.message);
+    return responseJson({ error: 'The cloned voice is unavailable right now.' }, 502, cors);
+  }
+
   const upstream = await fetch('https://openrouter.ai/api/v1/audio/speech', {
     method: 'POST',
     headers: { authorization: `Bearer ${env.OPENROUTER_API_KEY}`, 'content-type': 'application/json' },
-    body: JSON.stringify({
-      model: env.TTS_MODEL || 'microsoft/mai-voice-2-flash',
-      voice: env.TTS_VOICE || 'en-US-Harper:MAI-Voice-2',
-      input: text,
-      response_format: 'mp3',
-    }),
+    body: JSON.stringify(plan.body),
   });
   if (!upstream.ok || !upstream.body) {
     console.error('OpenRouter speech failed', upstream.status, await upstream.text());
     return responseJson({ error: 'Speech is unavailable right now.' }, 502, cors);
   }
-  const headers = new Headers(cors);
-  headers.set('content-type', 'audio/mpeg');
-  headers.set('cache-control', 'no-store');
-  return new Response(upstream.body, { headers });
+  return new Response(upstream.body, { headers: speechResponseHeaders(cors, plan.mode) });
 }
 
 async function syncContext(request: Request, env: Env, cors: HeadersInit): Promise<Response> {
