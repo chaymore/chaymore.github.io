@@ -20,7 +20,7 @@ Remote audio needs appropriate CORS headers; set `audioElement.crossOrigin = 'an
 
 Ask Caleb speech input is separate from this bridge. The mic control uses the browser Web Speech API and sends only the resulting text to `POST /ask`. Do not pass the microphone, a `MediaStream` from `getUserMedia`, or the recognition session into `connectAudio`. Mouth motion stays on the reply audio from `POST /speak`.
 
-Amplitude controls jaw opening; a rough frequency balance adjusts lip shape. This fallback responds to sound and silence but does not recognize phonemes.
+Connected audio is classified each frame into the portrait shapes below. The scorer follows [wawa-lipsync](https://github.com/wass08/wawa-lipsync) frequency bands (Oculus visemes such as `aa`, `E`, `O`, `PP`, and `FF`) and maps them onto this rig: `PP` → `MBP`, `FF`/`TH` → `FV`, `DD`/`nn` → `L`, `SS` → `I`, `kk`/`CH` → `E`, `RR` → `U`, and the vowels `aa`/`E`/`I`/`O`/`U` onto `A`/`E`/`I`/`O`/`U`. Silence returns to rest. The published library opens its own audio context and media-element source, so the portrait runs that scorer on the analyser it already owns. Waveform energy only gates silence; it does not choose the shape.
 
 ## Timed mouth shapes
 
@@ -33,12 +33,14 @@ portrait.setVisemes([
 ], () => audioElement.currentTime);
 ```
 
-Timed shapes override amplitude animation. Gaps and the end of the cue sequence return to rest. Pause/stop handlers should call `resetMouth()` to close the mouth; on resume, reinstall the cues and clock. This rig approximates shape families and does not model teeth or tongue articulation.
+Timed shapes override the analyser. Gaps and the end of the cue sequence return to rest. Pause/stop handlers should call `resetMouth()` to close the mouth; on resume, reinstall the cues and clock. This rig approximates shape families and does not model teeth or tongue articulation.
 
 For direct control, call `setMouth({ open, round, wide })` with values between 0 and 1. `resetMouth()` returns to rest; `disconnectAudio()` also removes analysis. Mouth transitions are smoothed, and the portrait eases forward while a reply is playing.
+
+The bust also blinks and shifts the brows slightly while it is on screen. Blinks are short and several seconds apart, a little more often while a reply is playing. The brow lift during speech is only a few millimetres in the stipple field. `prefers-reduced-motion: reduce` disables both. These motions are procedural; they are not driven by the microphone or by the reply waveform.
 
 Opening Ask Caleb snaps the bust to face the camera and holds that pose until the panel closes. Replies drive the mouth from `POST /speak`. The homepage has no separate sample-voice control.
 
 ## Verification
 
-Run `node --test tests/portrait-speech.test.mjs` with Node 22.18+ (native TypeScript support), `npx tsc --noEmit`, and `npm run build`. Browser checks should include starting/stopping/replaying audio, silence, mobile controls, and both point and ASCII rendering.
+Run `node --test tests/portrait-speech.test.mjs tests/portrait-visemes.test.mjs tests/portrait-face.test.mjs` with Node 22.18+ (native TypeScript support), `npx tsc --noEmit`, and `npm run build`. Browser checks should include starting/stopping/replaying audio, silence, a visible change of mouth shape across vowels, a blink, mobile controls, and both point and ASCII rendering.

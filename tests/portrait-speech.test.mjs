@@ -44,7 +44,8 @@ test('switching audio sources disconnects only this analyser, preserving caller 
   const first=source(),second=source(),driver=new PortraitSpeech();
   const disconnectOld=await driver.connectAudio(first);
   for(let i=0;i<20;i++)driver.update(.02);
-  assert.ok(driver.current.open>.5);
+  assert.notEqual(driver.viseme,'rest');
+  assert.ok(driver.current.open>.2);
   const disconnectNew=await driver.connectAudio(second);
   assert.equal(first.disconnections.length,1);
   disconnectOld();assert.equal(second.disconnections.length,0);
