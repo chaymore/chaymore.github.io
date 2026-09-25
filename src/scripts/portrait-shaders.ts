@@ -6,7 +6,7 @@ export const aperture = /* glsl */ `
   bool insideMouth() {
     float width = .19*(1.-mouth.y*.18+mouth.z*.12);
     float x = portraitPosition.x-mouthCenter.x;
-    float y = portraitPosition.y-mouthCenter.y+.0275*mouth.x+.10*x;
+    float y = portraitPosition.y-mouthCenter.y+.0275*mouth.x;
     vec2 uv = vec2(x/width, y/(.003+.0355*mouth.x));
     // Lens-shaped opening: tapers to the corners like real lips.
     return mouth.x>.03 && portraitPosition.z>.5 && abs(uv.x)<1. && abs(uv.y)<1.-uv.x*uv.x;
@@ -65,8 +65,11 @@ export const deform = /* glsl */ `
   vec3 speak(vec3 p) {
     float front = smoothstep(.15, .5, p.z);
     float dx = p.x-mouthCenter.x;
+    // The scan's lips slope down toward the portrait's left; level them around the mouth center.
+    float level = exp(-pow((p.y-mouthCenter.y)/.09, 2.)) * (1.-smoothstep(.2, .34, abs(dx))) * front;
+    p.y += .10 * dx * level;
     float across = 1. - smoothstep(.24, .58, abs(dx));
-    float line = p.y - mouthCenter.y + .10 * dx;
+    float line = p.y - mouthCenter.y;
     float lipSpan = 1. - smoothstep(.15, .23, abs(dx));
     float blend = mix(.15, .009, lipSpan);
     float lower = 1. - smoothstep(-blend, blend, line);
@@ -180,9 +183,9 @@ export const eyeVertex = /* glsl */ `
     eyeLids(p.xy, u, y, upper, lower, upperOpen);
     float inside = step(abs(u), .95) * step(lower + .0012, y) * step(y, upper - .0012);
     vec3 nView = normalize(normalMatrix * dir);
-    // A fixed catchlight toward the key light keeps the eyes looking wet and alive.
+    // A fixed catchlight toward the key light, on the portrait's right eye only (viewer's left).
     vec3 catchDir = normalize(normalize(vec3(-.35,.55,1.)) + vec3(0.,0.,1.));
-    float glint = step(.989, dot(nView, catchDir));
+    float glint = left ? step(.989, dot(nView, catchDir)) : 0.;
     float facing = step(.25, nView.z);
     visible = inside * (1.-glint) * facing * (1.-step(.5, ascii));
     float rho = length(disk);
@@ -220,7 +223,6 @@ export const cavityVertex = /* glsl */ `
     float tongue=step(n,-.45)*step(.55,noise);
     keep=1.-max(teeth,tongue);
     vec3 p=vec3(mouthCenter.x+position.x*width,mouthCenter.y-.0275*mouth.x+v*(.003+.0355*mouth.x),mouthCenter.z-.032-.038*(1.-position.z));
-    p.y-=.10*(p.x-mouthCenter.x);
     gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);
     gl_PointSize=1.3*pixelRatio*pointScale;
   }
@@ -237,7 +239,6 @@ export const cavityBackVertex = /* glsl */ `
     float width=.19*(1.-mouth.y*.18+mouth.z*.12);
     float lens=sqrt(max(0.,1.-position.x*position.x));
     vec3 p=vec3(mouthCenter.x+position.x*width*1.02,mouthCenter.y-.0275*mouth.x+position.y*lens*(.004+.0355*mouth.x),mouthCenter.z-.075);
-    p.y-=.10*(p.x-mouthCenter.x);
     gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);
   }
 `;
