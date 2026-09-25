@@ -6,8 +6,8 @@
  */
 export type MouthFit = { cx: number; cy: number; halfWidth: number; slope: number; center: number; upper: number; lower: number };
 
-// Measured from the scan's darkest lip line: corners near x = -0.16 and 0.22.
-export const MOUTH_FIT: MouthFit = { cx: 0.03, cy: 0.016, halfWidth: 0.19, slope: -0.095, center: 0.04, upper: 0.03, lower: 0.036 };
+// Calibrated by Caleb with ?mouth on 2026-09-25.
+export const MOUTH_FIT: MouthFit = { cx: 0.048, cy: -0.025, halfWidth: 0.256, slope: -0.056, center: 0.162, upper: 0.03, lower: 0.036 };
 
 const KEYS: (keyof MouthFit)[] = ['cx', 'cy', 'halfWidth', 'slope', 'center', 'upper', 'lower'];
 const LIMITS: Record<keyof MouthFit, [number, number]> = {

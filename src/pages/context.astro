@@ -1,67 +1,370 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import Nav from '../components/Nav.astro';
-import { site } from '../data/site';
+import '../styles/context.css';
+import { brainPrompt, corePrompt, filesPrompt } from '../data/prompts';
+
+const description =
+  'Connect the sources that already know you, then run one prompt that compiles them into a private knowledge wiki.';
 ---
 
-<Layout
-  title={`${site.name} | Context`}
-  description="The public context behind Caleb Haymore's site and the Ask Caleb portrait."
->
-  <Nav />
+<Layout minimal bodyClass="plain" title="Caleb Haymore | Context" description={description}>
+  <a class="skip" href="#core">Skip to the prompt</a>
+  <a class="home-link" href="/">Caleb Haymore</a>
 
-  <main class="site-shell pt-28 pb-24 flex flex-col gap-8">
-    <header class="flex flex-col gap-3 pb-4">
-      <p class="type-line text-xs uppercase tracking-[0.22em] text-zinc-500">caleb@portfolio:~$ cat context.txt</p>
-      <h1 class="text-4xl font-bold text-zinc-100 reveal">Context</h1>
-      <p class="text-zinc-400 max-w-2xl reveal" style="--d: 0.08s">
-        The public frame for this site, and for the portrait that answers from it.
-      </p>
-      <div class="ascii-rule reveal" style="--d: 0.14s" aria-hidden="true"></div>
-    </header>
+  <main class="field">
+    <h1 class="sr-only">Context</h1>
+    <p class="intro">Upload the data from, or connect, each of these tools to one AI. Run the center prompt there. It structures everything into a format an agent can read.</p>
 
-    <section class="grid gap-4">
-      <article class="ascii-panel p-6 flex flex-col gap-4 text-zinc-300 leading-relaxed reveal" style="--d: 0.2s" data-title="frame">
-        <h2 class="font-bold text-zinc-100">Frame</h2>
-        <p>{site.intro}</p>
-        <p>
-          The work sits where capital, rules, and technical systems start shaping each other:
-          case competitions, research questions, and small tools that keep a day from disappearing.
-        </p>
-        <pre class="ascii-pre text-zinc-500">{`finance  ×  law  ×  systems
-compare, then synthesize`}</pre>
-      </article>
+    <section aria-labelledby="web-title">
+      <h2 id="web-title" class="sr-only">Sources around the core prompt</h2>
+      <div class="web-stage" data-web>
+        <article class="core" id="core">
+          <p class="core-kicker">Run this once you've gathered all the context.</p>
+          <div class="core-scroll">
+            <pre id="core-prompt">{corePrompt}</pre>
+          </div>
+          <div class="core-foot">
+            <button class="copy-btn" type="button" data-copy="#core-prompt">Copy prompt</button>
+            <span class="gathered-count" data-gathered-count>0 of 7 gathered</span>
+          </div>
+        </article>
 
-      <article class="ascii-panel p-6 flex flex-col gap-4 text-zinc-300 leading-relaxed reveal" style="--d: 0.28s" data-title="portrait">
-        <h2 class="font-bold text-zinc-100">Ask Caleb</h2>
-        <p>
-          The homepage portrait is a digital version of me. It answers in the first person from an
-          approved public snapshot of work, interests, and projects that are already meant to be
-          shared. Private notes stay in the private wiki. When that snapshot does not cover a
-          question, the portrait says it does not have enough context.
-        </p>
-        <pre class="ascii-pre text-zinc-500">{`+------------------+----------------------------------+
-| source           | approved public pages            |
-| private wiki     | stays private                    |
-| missing context  | the portrait says so             |
-+------------------+----------------------------------+`}</pre>
-        <p class="text-sm text-zinc-400">
-          Ask from the <a href="/" class="ascii-link">[portrait]</a>. A spoken question stays in the
-          browser until its transcript is sent. The spoken reply is what moves the mouth.
-        </p>
-      </article>
+        <button class="node node-imessage" type="button" data-source="imessage" data-label="iMessage" data-role="core relationships" aria-label="iMessage, core relationships. Open instructions." aria-haspopup="dialog" aria-controls="source-dialog">
+          <span class="logo" aria-hidden="true">
+            <img src="/icons/imessage.png" alt="" width="225" height="225" />
+          </span>
+          <span class="node-caption">
+            <span class="node-title">iMessage</span>
+            <span class="node-role">Core relationships</span>
+          </span>
+        </button>
 
-      <article class="ascii-panel p-6 flex flex-col gap-4 text-zinc-300 leading-relaxed reveal" style="--d: 0.36s" data-title="map">
-        <h2 class="font-bold text-zinc-100">Where to look</h2>
-        <ul class="flex flex-col gap-2 text-sm">
-          <li><a href="/about" class="ascii-link">[about]</a> — the short bio</li>
-          <li><a href="/projects" class="ascii-link">[projects]</a> — systems and experiments</li>
-          <li><a href="/writing" class="ascii-link">[writing]</a> — essays and notes</li>
-          <li><a href="/research" class="ascii-link">[research]</a> — longer questions</li>
-          <li><a href="/competitions" class="ascii-link">[competitions]</a> — case work</li>
-          <li><a href="/contact" class="ascii-link">[contact]</a> — how to reach me</li>
-        </ul>
-      </article>
-    </section>
+        <button class="node node-linkedin" type="button" data-source="linkedin" data-label="LinkedIn" data-role="wider network" aria-label="LinkedIn, wider network. Open instructions." aria-haspopup="dialog" aria-controls="source-dialog">
+          <span class="logo" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path fill="#0A66C2" fill-rule="evenodd" d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"></path>
+            </svg>
+          </span>
+          <span class="node-caption">
+            <span class="node-title">LinkedIn</span>
+            <span class="node-role">People you know</span>
+          </span>
+        </button>
+
+        <button class="node node-files" type="button" data-source="files" data-label="Files" data-role="on your computer" aria-label="Files on your computer. Open instructions." aria-haspopup="dialog" aria-controls="source-dialog">
+          <span class="logo logo-files" aria-hidden="true">
+            <svg viewBox="0 0 72 58">
+              <defs>
+                <linearGradient id="folder-back" x1="36" y1="8" x2="36" y2="22" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#7EB6FF"></stop>
+                  <stop offset="1" stop-color="#4C97F6"></stop>
+                </linearGradient>
+                <linearGradient id="folder-front" x1="36" y1="20" x2="36" y2="56" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#8EBEFF"></stop>
+                  <stop offset="1" stop-color="#2B7FF0"></stop>
+                </linearGradient>
+              </defs>
+              <path fill="url(#folder-back)" d="M8 18.5c0-2.4 1.9-4.3 4.3-4.3h12.2l4.2 4.3H59.5c2.5 0 4.5 1.9 4.5 4.3v3.2H8v-7.5z"></path>
+              <path fill="url(#folder-front)" d="M5.2 24.2h62.2c1.8 0 3 1.6 2.5 3.3L62.6 51c-.5 1.8-2.1 3-4 3H14.2c-1.9 0-3.5-1.2-4-3L2.7 27.5c-.5-1.7.7-3.3 2.5-3.3z"></path>
+              <path fill="#fff" fill-opacity="0.28" d="M8.5 27.2h55.2c.7 0 1.1.7.8 1.3l-1.2 2.2H9.2l-.7-3.5z"></path>
+            </svg>
+          </span>
+          <span class="node-caption">
+            <span class="node-title">Files</span>
+            <span class="node-role">On your computer</span>
+          </span>
+        </button>
+
+        <button class="node node-gmail" type="button" data-source="gmail" data-label="Gmail" data-role="correspondence" aria-label="Gmail, correspondence. Open instructions." aria-haspopup="dialog" aria-controls="source-dialog">
+          <span class="logo logo-gmail" aria-hidden="true">
+            <svg viewBox="52 42 88 66">
+              <path fill="#4285f4" d="M58 108h14V74L52 59v43c0 3.32 2.69 6 6 6"></path>
+              <path fill="#34a853" d="M120 108h14c3.32 0 6-2.69 6-6V59l-20 15"></path>
+              <path fill="#fbbc04" d="M120 48v26l20-15v-8c0-7.42-8.47-11.65-14.4-7.2"></path>
+              <path fill="#ea4335" d="M72 74V48l24 18 24-18v26L96 92"></path>
+              <path fill="#c5221f" d="M52 51v8l20 15V48l-5.6-4.2c-5.94-4.45-14.4-.22-14.4 7.2"></path>
+            </svg>
+          </span>
+          <span class="node-caption">
+            <span class="node-title">Gmail</span>
+            <span class="node-role">Correspondence</span>
+          </span>
+        </button>
+
+        <button class="node node-calendar" type="button" data-source="calendar" data-label="Google Calendar" data-role="your time" aria-label="Google Calendar, your time. Open instructions." aria-haspopup="dialog" aria-controls="source-dialog">
+          <span class="logo" aria-hidden="true">
+            <svg viewBox="0 0 200 200">
+              <g transform="translate(3.75 3.75)">
+                <path fill="#FFFFFF" d="M148.882,43.618l-47.368-5.263l-57.895,5.263L38.355,96.25l5.263,52.632l52.632,6.579l52.632-6.579 l5.263-53.947L148.882,43.618z"></path>
+                <path fill="#1A73E8" d="M65.211,125.276c-3.934-2.658-6.658-6.539-8.145-11.671l9.132-3.763c0.829,3.158,2.276,5.605,4.342,7.342 c2.053,1.737,4.553,2.592,7.474,2.592c2.987,0,5.553-0.908,7.697-2.724s3.224-4.132,3.224-6.934c0-2.868-1.132-5.211-3.395-7.026 s-5.105-2.724-8.5-2.724h-5.276v-9.039H76.5c2.921,0,5.382-0.789,7.382-2.368c2-1.579,3-3.737,3-6.487 c0-2.447-0.895-4.395-2.684-5.855s-4.053-2.197-6.803-2.197c-2.684,0-4.816,0.711-6.395,2.145s-2.724,3.197-3.447,5.276 l-9.039-3.763c1.197-3.395,3.395-6.395,6.618-8.987c3.224-2.592,7.342-3.895,12.342-3.895c3.697,0,7.026,0.711,9.974,2.145 c2.947,1.434,5.263,3.421,6.934,5.947c1.671,2.539,2.5,5.382,2.5,8.539c0,3.224-0.776,5.947-2.329,8.184 c-1.553,2.237-3.461,3.947-5.724,5.145v0.539c2.987,1.25,5.421,3.158,7.342,5.724c1.908,2.566,2.868,5.632,2.868,9.211 s-0.908,6.776-2.724,9.579c-1.816,2.803-4.329,5.013-7.513,6.618c-3.197,1.605-6.789,2.421-10.776,2.421 C73.408,129.263,69.145,127.934,65.211,125.276z"></path>
+                <path fill="#1A73E8" d="M121.25,79.961l-9.974,7.25l-5.013-7.605l17.987-12.974h6.895v61.197h-9.895L121.25,79.961z"></path>
+                <path fill="#EA4335" d="M148.882,196.25l47.368-47.368l-23.684-10.526l-23.684,10.526l-10.526,23.684L148.882,196.25z"></path>
+                <path fill="#34A853" d="M33.092,172.566l10.526,23.684h105.263v-47.368H43.618L33.092,172.566z"></path>
+                <path fill="#4285F4" d="M12.039-3.75C3.316-3.75-3.75,3.316-3.75,12.039v136.842l23.684,10.526l23.684-10.526V43.618h105.263 l10.526-23.684L148.882-3.75H12.039z"></path>
+                <path fill="#188038" d="M-3.75,148.882v31.579c0,8.724,7.066,15.789,15.789,15.789h31.579v-47.368H-3.75z"></path>
+                <path fill="#FBBC04" d="M148.882,43.618v105.263h47.368V43.618l-23.684-10.526L148.882,43.618z"></path>
+                <path fill="#1967D2" d="M196.25,43.618V12.039c0-8.724-7.066-15.789-15.789-15.789h-31.579v47.368H196.25z"></path>
+              </g>
+            </svg>
+          </span>
+          <span class="node-caption">
+            <span class="node-title">Calendar</span>
+            <span class="node-role">Your time</span>
+          </span>
+        </button>
+
+        <button class="node node-drive" type="button" data-source="drive" data-label="Google Drive" data-role="notes and files" aria-label="Google Drive, notes and files. Open instructions." aria-haspopup="dialog" aria-controls="source-dialog">
+          <span class="logo logo-drive" aria-hidden="true">
+            <svg viewBox="0 0 87.3 78">
+              <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"></path>
+              <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0-1.2 4.5h27.5z" fill="#00ac47"></path>
+              <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"></path>
+              <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"></path>
+              <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"></path>
+              <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"></path>
+            </svg>
+          </span>
+          <span class="node-caption">
+            <span class="node-title">Drive</span>
+            <span class="node-role">Notes and files</span>
+          </span>
+        </button>
+
+        <button class="node node-brain" type="button" data-source="brain" data-label="Brain" data-role="never written down" aria-label="Brain, never written down. Open instructions." aria-haspopup="dialog" aria-controls="source-dialog">
+          <span class="logo logo-brain" aria-hidden="true">
+            <img src="/icons/brain.png" alt="" width="246" height="256" />
+          </span>
+          <span class="node-caption">
+            <span class="node-title">Brain</span>
+            <span class="node-role">Never written down</span>
+          </span>
+        </button>
+      </div>
+      </section>
+
+    <p class="model-tip">Run these searches on a cheap model, like Sonnet or Luna.</p>
+    <p class="fine-print">
+      The folders follow <a href="https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f">Andrej Karpathy's LLM wiki</a>.
+      Exports include other people, so keep the folder private.
+    </p>
+    <noscript><p class="model-tip">Enable JavaScript to open each source. The prompt can still be selected and copied.</p></noscript>
+    <p id="context-status" class="sr-only" role="status"></p>
   </main>
+
+  <dialog id="source-dialog" class="source-dialog">
+    <div class="dialog-shell">
+      <form method="dialog" class="dialog-close-row">
+        <button class="dialog-close" type="submit">Close</button>
+      </form>
+
+      <article class="panel" data-panel="imessage" hidden>
+        <h2 id="panel-imessage-title">iMessage</h2>
+        <p class="panel-kicker">Core relationships</p>
+        <p>
+          This is the record of the people you actually talk to. It has to be exported from a Mac
+          that is signed into Messages. The iPhone has no full export.
+        </p>
+        <ol class="steps">
+          <li>
+            <div class="step-copy">
+              On the Mac, open System Settings → Privacy &amp; Security → Full Disk Access. Turn it on
+              for Terminal. Quit Terminal and open it again. The exporter cannot read Messages without this.
+            </div>
+          </li>
+          <li>
+            <div class="step-copy">
+              Install <a href="https://github.com/ReagentX/imessage-exporter">imessage-exporter</a>.
+              If you don't have Homebrew, install it from <a href="https://brew.sh">brew.sh</a> first.
+              <div class="cmd">
+                <pre id="imessage-install">brew install imessage-exporter</pre>
+                <button type="button" data-copy="#imessage-install">Copy</button>
+              </div>
+            </div>
+          </li>
+          <li>
+            <div class="step-copy">
+              Export the text, and leave the photos behind. A text folder is something a model can read.
+              <div class="cmd">
+                <pre id="imessage-cmd">imessage-exporter -f txt -o ~/Desktop/imessage-export</pre>
+                <button type="button" data-copy="#imessage-cmd">Copy</button>
+              </div>
+            </div>
+          </li>
+          <li>
+            <div class="step-copy">
+              If that folder is enormous, run it again with a start date so the model can actually get through it.
+              <div class="cmd">
+                <pre id="imessage-recent">imessage-exporter -f txt -o ~/Desktop/imessage-export -s 2023-01-01</pre>
+                <button type="button" data-copy="#imessage-recent">Copy</button>
+              </div>
+            </div>
+          </li>
+          <li>
+            <div class="step-copy">When you run the center prompt, give it the <code>imessage-export</code> folder.</div>
+          </li>
+        </ol>
+        <p>
+          If the command cannot find the database, Messages in iCloud may still be downloading, or
+          Full Disk Access did not stick. Restart Terminal after turning it on.
+        </p>
+        <div class="panel-actions">
+          <button class="gather" type="button" data-gather="imessage" aria-pressed="false">Mark as gathered</button>
+        </div>
+      </article>
+
+      <article class="panel" data-panel="linkedin" hidden>
+        <h2 id="panel-linkedin-title">LinkedIn</h2>
+        <p class="panel-kicker">The wider network</p>
+        <p>
+          Connections, messages, and the jobs you've had. This is the set of people you know who
+          never became a text thread: work, school, and collaborators.
+        </p>
+        <ol class="steps">
+          <li>
+            <div class="step-copy">
+              On a computer, open
+              <a href="https://www.linkedin.com/mypreferences/d/download-my-data">Get a copy of your data</a>.
+              The long way is Me → Settings &amp; Privacy → Data privacy → Get a copy of your data.
+            </div>
+          </li>
+          <li>
+            <div class="step-copy">
+              Request the larger data archive. Connections live in that archive. If your account still
+              shows a separate Connections checkbox, select that too.
+            </div>
+          </li>
+          <li>
+            <div class="step-copy">
+              LinkedIn emails you when the download is ready. It often arrives the same day. They allow up to 24 hours.
+            </div>
+          </li>
+          <li>
+            <div class="step-copy">
+              Unzip it. <code>Connections.csv</code> is the file that matters most. Also keep messages,
+              profile, and positions if they are in the archive. The csv usually has a notes preamble
+              above the real header. The center prompt knows to skip it.
+            </div>
+          </li>
+          <li><div class="step-copy">Give the unzipped folder to the center prompt.</div></li>
+        </ol>
+        <div class="panel-actions">
+          <button class="gather" type="button" data-gather="linkedin" aria-pressed="false">Mark as gathered</button>
+        </div>
+      </article>
+
+      <article class="panel" data-panel="files" hidden>
+        <h2 id="panel-files-title">Files</h2>
+        <p class="panel-kicker">Documents on your computer</p>
+        <p>
+          Notes, school, work, and the writing that never made it into email. Run this in a tool that
+          can see the computer, on a cheap model like Sonnet or Luna. It should read the documents.
+          It should not touch photos, apps, or caches.
+        </p>
+        <div class="panel-actions">
+          <button class="copy-btn" type="button" data-copy="#files-prompt">Copy folder prompt</button>
+        </div>
+        <pre class="prompt-block" id="files-prompt">{filesPrompt}</pre>
+        <div class="panel-actions">
+          <button class="gather" type="button" data-gather="files" aria-pressed="false">Mark as gathered</button>
+        </div>
+      </article>
+
+      <article class="panel" data-panel="gmail" hidden>
+        <h2 id="panel-gmail-title">Gmail</h2>
+        <p class="panel-kicker">Day-to-day correspondence</p>
+        <p>
+          Connect it. Don't export the whole mailbox. The center prompt assumes the tool you run it in
+          can already read Gmail, and it only needs recent threads: what you are in the middle of,
+          who you write, and what keeps coming back.
+        </p>
+        <ol class="steps">
+          <li>Open the tool where you will paste the center prompt.</li>
+          <li>
+            Connect Gmail on the account you actually live in.
+            In Claude that is Settings → Connectors. In ChatGPT it is Settings → Apps.
+            In a coding agent, use a Google MCP server with Gmail enabled.
+          </li>
+          <li>Leave the connection on. You do not attach a mail file unless the tool has no connector.</li>
+        </ol>
+        <details class="fallback">
+          <summary>No Google connection</summary>
+          <p>
+            Use <a href="https://takeout.google.com">Google Takeout</a> and export Mail. Takeout can also
+            export Calendar and Drive in the same pass. An mbox of your whole inbox is huge. Prefer the
+            connector, and only fall back to Takeout if the tool cannot connect.
+          </p>
+        </details>
+        <div class="panel-actions">
+          <button class="gather" type="button" data-gather="gmail" aria-pressed="false">Mark as gathered</button>
+        </div>
+      </article>
+
+      <article class="panel" data-panel="calendar" hidden>
+        <h2 id="panel-calendar-title">Google Calendar</h2>
+        <p class="panel-kicker">How your time actually goes</p>
+        <p>
+          The calendar is better evidence than a self-description. Recurring events, who you meet,
+          and which days are already spoken for.
+        </p>
+        <ol class="steps">
+          <li>In the same tool, connect Google Calendar on the account you use.</li>
+          <li>Claude: Settings → Connectors. ChatGPT: Settings → Apps. A coding agent: a Google MCP server.</li>
+          <li>
+            You don't export it. The center prompt reads the shape of your weeks, not every event you have ever had.
+          </li>
+        </ol>
+        <p>
+          If the tool cannot connect, <a href="https://takeout.google.com">Google Takeout</a> can export Calendar as well.
+        </p>
+        <div class="panel-actions">
+          <button class="gather" type="button" data-gather="calendar" aria-pressed="false">Mark as gathered</button>
+        </div>
+      </article>
+
+      <article class="panel" data-panel="drive" hidden>
+        <h2 id="panel-drive-title">Google Drive</h2>
+        <p class="panel-kicker">Notes, docs, and files</p>
+        <p>
+          Drive is where the unfiled writing lives: notes, journals, decks, and the documents from work
+          that never made it into a message. Connect it. Do not hand over the entire drive.
+        </p>
+        <ol class="steps">
+          <li>Connect Google Drive in the same tool, on the same account.</li>
+          <li>Claude: Settings → Connectors. ChatGPT: Settings → Apps. A coding agent: a Google MCP server.</li>
+          <li>
+            The center prompt looks for folders that resemble notes, journals, writing, or active work.
+            If it can't tell, it will ask you once which folders matter.
+          </li>
+        </ol>
+        <p>
+          If the tool cannot connect, export just those folders from
+          <a href="https://takeout.google.com">Google Takeout</a> rather than all of Drive.
+        </p>
+        <div class="panel-actions">
+          <button class="gather" type="button" data-gather="drive" aria-pressed="false">Mark as gathered</button>
+        </div>
+      </article>
+
+      <article class="panel" data-panel="brain" hidden>
+        <h2 id="panel-brain-title">Brain</h2>
+        <p class="panel-kicker">Everything that was never written down</p>
+        <p>
+          Run this in a separate chat. It interviews you, one question at a time, for the likes,
+          dislikes, people, and beliefs that are only in your head. When you are done, save the
+          markdown it writes and give that file to the center prompt.
+        </p>
+        <div class="panel-actions">
+          <button class="copy-btn" type="button" data-copy="#brain-prompt">Copy interview prompt</button>
+        </div>
+        <pre class="prompt-block" id="brain-prompt">{brainPrompt}</pre>
+        <div class="panel-actions">
+          <button class="gather" type="button" data-gather="brain" aria-pressed="false">Mark as gathered</button>
+        </div>
+      </article>
+    </div>
+  </dialog>
+
+  <script>
+    import '../scripts/context-web.ts';
+  </script>
 </Layout>

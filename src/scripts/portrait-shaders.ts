@@ -257,7 +257,7 @@ export const cavityVertex = /* glsl */ `
     float noise=fract(sin(dot(position.xy,vec2(12.9898,78.233)))*43758.5453);
     float n=v/max(lens*lens,.001);
     // Upper teeth sit just under a thin lip shadow.
-    float teeth=step(.36,n)*step(n,.84)*step(across,.7)*step(.25,mouth.x);
+    float teeth=step(.5,n)*step(n,.86)*step(across,.6)*step(.25,mouth.x);
     float tongue=step(n,-.45)*step(.55,noise);
     keep=1.-max(teeth,tongue);
     vec3 p=vec3(mouthCenter.x+position.x*width,mouthCenter.y-.0275*mouth.x+v*(.003+.0355*mouth.x),mouthCenter.z-.032-.038*(1.-position.z));
