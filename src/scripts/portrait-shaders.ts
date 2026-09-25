@@ -2,9 +2,10 @@
 export const aperture = /* glsl */ `
   uniform vec3 mouth;
   uniform vec3 mouthCenter;
+  uniform vec4 mouthScan;
   varying vec3 portraitPosition;
   bool insideMouth() {
-    float width = .19*(1.-mouth.y*.18+mouth.z*.12);
+    float width = mouthScan.z*.68*(1.-mouth.y*.18+mouth.z*.12);
     float x = portraitPosition.x-mouthCenter.x;
     float y = portraitPosition.y-mouthCenter.y+.0275*mouth.x;
     vec2 uv = vec2(x/width, y/(.003+.0355*mouth.x));
@@ -37,9 +38,27 @@ export const lids = /* glsl */ `
 `;
 
 // Shared deformation keeps the visible stipples and depth surface perfectly aligned.
+// mouthScan: the scan's own lip line (center x, center y, half width to the corners, slope).
+// mouthCenter: where the mouth should sit. mouthTune: upper lip, lower lip, raw scan flag.
+export const mouthFrame = /* glsl */ `
+  uniform vec4 mouthScan;
+  uniform vec4 mouthTune;
+  // Moves the scan's lips onto a level line centered under the nose.
+  vec3 levelMouth(vec3 p) {
+    if (mouthTune.z > .5) return p;
+    float dx = p.x - mouthScan.x;
+    float w = exp(-pow((p.y - mouthScan.y)/.09, 2.)) * (1. - smoothstep(mouthScan.z*1.05, mouthScan.z*1.8, abs(dx))) * smoothstep(.15, .5, p.z);
+    p.y -= mouthScan.w * dx * w;
+    p.x += (mouthCenter.x - mouthScan.x) * w;
+    p.y += (mouthCenter.y - mouthScan.y) * w;
+    return p;
+  }
+`;
+
 export const deform = /* glsl */ `
   uniform vec3 mouth;
   uniform vec3 mouthCenter;
+  ${mouthFrame}
   uniform float blink;
   uniform float brow;
   const vec3 jawPivot = vec3(.05, .24, .10);
@@ -64,17 +83,16 @@ export const deform = /* glsl */ `
   }
   vec3 speak(vec3 p) {
     float front = smoothstep(.15, .5, p.z);
+    p = levelMouth(p);
+    float hw = mouthScan.z;
     float dx = p.x-mouthCenter.x;
-    // The scan's lips slope down toward the portrait's left; level them around the mouth center.
-    float level = exp(-pow((p.y-mouthCenter.y)/.09, 2.)) * (1.-smoothstep(.2, .34, abs(dx))) * front;
-    p.y += .10 * dx * level;
     float across = 1. - smoothstep(.24, .58, abs(dx));
     float line = p.y - mouthCenter.y;
-    float lipSpan = 1. - smoothstep(.15, .23, abs(dx));
+    float lipSpan = 1. - smoothstep(hw*.8, hw*1.2, abs(dx));
     float blend = mix(.15, .009, lipSpan);
     float lower = 1. - smoothstep(-blend, blend, line);
     float neck = smoothstep(-.62, -.36, p.y);
-    float lips = exp(-pow(line/.105, 2.)) * (1.-smoothstep(.15,.31,abs(dx))) * front;
+    float lips = exp(-pow(line/.105, 2.)) * (1.-smoothstep(hw*.8,hw*1.6,abs(dx))) * front;
     // The jaw hinges near the ears, so the chin swings down and slightly back
     // and the cheeks stretch with it. The lower lip adds a small drop of its own.
     float jaw = front * across * lower * neck * smoothstep(.1, .3, p.z);
@@ -87,7 +105,7 @@ export const deform = /* glsl */ `
     p.z += mouth.y * .025 * lips;
     p.y += mouth.x * .008 * lips * (1.-lower);
     // Wide shapes pull the corners up and back and push the cheeks up.
-    float corners = lips * smoothstep(.08, .17, abs(dx));
+    float corners = lips * smoothstep(hw*.4, hw*.9, abs(dx));
     p.y += mouth.z * .009 * corners;
     p.z -= mouth.z * .005 * corners;
     float cheeks = max(eyeMask(p.xy, vec2(mouthCenter.x-.2, .17), vec2(.12, .09)), eyeMask(p.xy, vec2(mouthCenter.x+.25, .17), vec2(.12, .09))) * front;
@@ -131,6 +149,26 @@ export const pointVertex = /* glsl */ `
     size = mix(size, min(size, .85 * pointScale), covered);
     size = max(size, mix(size, 1.45 * pointScale, lash));
     size = max(size, mix(size, 1.0 * pointScale, lowerLash * (1.-blink)));
+    // Lips: modeled on the leveled mouth frame, drawn with the scan's own stipples,
+    // so they move with the jaw. A darker line closes them; the lower lip keeps a highlight.
+    if (mouthTune.z < .5) {
+      vec3 lp = levelMouth(position);
+      float lu = (lp.x - mouthCenter.x) / mouthScan.z;
+      float lv = lp.y - mouthCenter.y;
+      float ls = max(0., 1. - lu*lu);
+      float top = mouthTune.x * pow(ls, .55) * (1. - .22*exp(-pow(lu/.13, 2.)));
+      float bot = -mouthTune.y * pow(ls, .7);
+      float lipFront = smoothstep(.5, .6, lp.z);
+      float lip = lipFront * (1.-smoothstep(.92, 1.02, abs(lu))) * smoothstep(bot-.002, bot+.002, lv) * (1.-smoothstep(top-.002, top+.002, lv));
+      float edge = lip * (1.-smoothstep(.0, .005, min(abs(lv-top), abs(lv-bot))));
+      float shine = lip * step(lv, 0.) * exp(-pow(((lv-bot)/max(-bot, .001) - .5)/.2, 2.)) * (1.-smoothstep(.15, .55, abs(lu)));
+      float seam = lipFront * (1.-smoothstep(.0025, .006, abs(lv))) * (1.-smoothstep(.88, 1.04, abs(lu))) * (1.-smoothstep(.05, .2, mouth.x));
+      float corner = lipFront * (1.-smoothstep(.0, .018, length(vec2((abs(lu)-1.)*mouthScan.z, lv))));
+      size = mix(size, max(size, 1.75 * pointScale), lip);
+      size = mix(size, 1.05 * pointScale, shine * .8);
+      size = max(size, mix(size, 2.1 * pointScale, edge * .8));
+      size = max(size, mix(size, 2.3 * pointScale, max(seam, corner * .8)));
+    }
     visible = ascii > .5 && seed > .18 ? 0. : 1.;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(p,1.);
     gl_Position.z -= .0008 * gl_Position.w;
@@ -209,10 +247,10 @@ export const eyeFragment = /* glsl */ `
 // Recessed, dotted mouth interior revealed when the lower lip separates:
 // a pale band of upper teeth under the lip and a lighter tongue at the bottom.
 export const cavityVertex = /* glsl */ `
-  uniform vec3 mouth; uniform vec3 mouthCenter; uniform float pixelRatio; uniform float pointScale;
+  uniform vec3 mouth; uniform vec3 mouthCenter; uniform vec4 mouthScan; uniform float pixelRatio; uniform float pointScale;
   varying float keep;
   void main(){
-    float width=.19*(1.-mouth.y*.18+mouth.z*.12);
+    float width=mouthScan.z*.68*(1.-mouth.y*.18+mouth.z*.12);
     float lens=sqrt(max(0.,1.-position.x*position.x));
     float v=position.y*lens;
     float across=abs(position.x);
@@ -234,9 +272,9 @@ export const cavityFragment = /* glsl */ `
 
 // White backdrop behind the mouth interior so the far side of the head never shows through.
 export const cavityBackVertex = /* glsl */ `
-  uniform vec3 mouth; uniform vec3 mouthCenter;
+  uniform vec3 mouth; uniform vec3 mouthCenter; uniform vec4 mouthScan;
   void main(){
-    float width=.19*(1.-mouth.y*.18+mouth.z*.12);
+    float width=mouthScan.z*.68*(1.-mouth.y*.18+mouth.z*.12);
     float lens=sqrt(max(0.,1.-position.x*position.x));
     vec3 p=vec3(mouthCenter.x+position.x*width*1.02,mouthCenter.y-.0275*mouth.x+position.y*lens*(.004+.0355*mouth.x),mouthCenter.z-.075);
     gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);
