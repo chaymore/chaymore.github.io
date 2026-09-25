@@ -3,6 +3,7 @@ import { PortraitSpeech, type MouthShape, type VisemeCue } from './portrait-spee
 import { pointVertex, pointFragment, surfaceVertex, surfaceFragment, eyeVertex, eyeFragment, cavityVertex, cavityFragment, cavityBackVertex, cavityBackFragment } from './portrait-shaders';
 import { portraitTurn } from './portrait-turn.ts';
 import { createFaceMotion } from './portrait-face.ts';
+import { parseMouthFit, mountMouthTuner, type MouthFit } from './portrait-mouth.ts';
 
 export interface PortraitAPI {
   setMouth(shape: Partial<MouthShape>): void;
@@ -57,7 +58,15 @@ export async function initHeadPortrait(root: HTMLElement) {
     const ctx=atlas.getContext('2d')!; ctx.fillStyle='#fff';ctx.font='48px monospace';ctx.textAlign='center';ctx.textBaseline='middle';
     ['.',':','-','+','=','*','#','@'].forEach((glyph,i)=>ctx.fillText(glyph,i*64+32,33));
     const glyphs=new THREE.CanvasTexture(atlas); disposable.push(glyphs);
-    const uniforms={mouth:{value:new THREE.Vector3()},mouthCenter:{value:new THREE.Vector3(...meta.mouth)},pixelRatio:{value:renderer.getPixelRatio()},pointScale:{value:1},ascii:{value:0},glyphs:{value:glyphs},blink:{value:0},brow:{value:0},gaze:{value:new THREE.Vector2()}};
+    const uniforms={mouth:{value:new THREE.Vector3()},mouthCenter:{value:new THREE.Vector3(...meta.mouth)},mouthScan:{value:new THREE.Vector4()},mouthTune:{value:new THREE.Vector4()},pixelRatio:{value:renderer.getPixelRatio()},pointScale:{value:1},ascii:{value:0},glyphs:{value:glyphs},blink:{value:0},brow:{value:0},gaze:{value:new THREE.Vector2()}};
+    const tuning=new URLSearchParams(location.search).has('mouth');
+    const applyMouth=(fit:MouthFit,raw=false)=>{
+      uniforms.mouthScan.value.set(fit.cx,fit.cy,fit.halfWidth,fit.slope);
+      uniforms.mouthTune.value.set(fit.upper,fit.lower,raw?1:0,0);
+      uniforms.mouthCenter.value.set(raw?fit.cx:fit.center,fit.cy,meta.mouth[2]);
+    };
+    const mouthFit=parseMouthFit(new URLSearchParams(location.search).get('mouth'));
+    applyMouth(mouthFit);
     const material=new THREE.ShaderMaterial({uniforms,vertexShader:pointVertex,fragmentShader:pointFragment}); disposable.push(material);
     const depthMaterial=new THREE.ShaderMaterial({uniforms,vertexShader:surfaceVertex,fragmentShader:surfaceFragment,colorWrite:false,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:2,polygonOffsetUnits:2}); disposable.push(depthMaterial);
     // bust carries the drag/idle turn; pose adds speech nods and tilts around the neck.
@@ -152,6 +161,16 @@ export async function initHeadPortrait(root: HTMLElement) {
       disconnectAudio:()=>{speech.disconnect();},
     };
     if(import.meta.env.DEV)(window as any).__portraitDebug={uniforms,pose,bust};
+    if(tuning){
+      root.dataset.attention='front';
+      // With the bust and pose at rest, head space is world space.
+      const toScreen=(x:number,y:number)=>({x:(x-camera.left)/(camera.right-camera.left)*canvas.clientWidth,y:(camera.top-y)/(camera.top-camera.bottom)*canvas.clientHeight});
+      const fromScreen=(x:number,y:number)=>({x:camera.left+x/canvas.clientWidth*(camera.right-camera.left),y:camera.top-y/canvas.clientHeight*(camera.top-camera.bottom)});
+      const tuner=mountMouthTuner({root,canvas,initial:mouthFit,signal:events.signal,toScreen,fromScreen,
+        apply:(fit,raw)=>{applyMouth(fit,raw);render();},
+        setOpen:open=>{speech.setMouth({open,round:0,wide:.15});}});
+      observer?.disconnect();observer=new ResizeObserver(()=>{resize();tuner.place();});observer.observe(root);
+    }
     window.calebPortrait=api;window.dispatchEvent(new CustomEvent('portrait:ready',{detail:api}));
     let previous=performance.now();const started=previous;let lastSpeech=-Infinity;
     const animate=(time:number)=>{
@@ -163,7 +182,7 @@ export async function initHeadPortrait(root: HTMLElement) {
         canvas.dataset.viseme=speech.viseme;
         if(shape.open>.025||speech.viseme!=='rest')lastSpeech=time;
         const speaking=time-lastSpeech<500;
-        const facePose=face.update(dt,{speaking,reducedMotion:reducedMotion.matches,level:speech.level,look:lookTarget(time,speaking)});
+        const facePose=face.update(dt,{speaking,reducedMotion:reducedMotion.matches||tuning,level:speech.level,look:tuning?null:lookTarget(time,speaking)});
         const faceShift=Math.abs(uniforms.blink.value-facePose.blink)+Math.abs(uniforms.brow.value-facePose.brow)
           +Math.abs(uniforms.gaze.value.x-facePose.gazeX)+Math.abs(uniforms.gaze.value.y-facePose.gazeY)
           +Math.abs(pose.rotation.x-facePose.headPitch)+Math.abs(pose.rotation.y-facePose.headYaw)+Math.abs(pose.rotation.z-facePose.headRoll)
