@@ -6,8 +6,8 @@
  */
 export type MouthFit = { cx: number; cy: number; halfWidth: number; slope: number; center: number; upper: number; lower: number };
 
-// Calibrated by Caleb with ?mouth on 2026-09-25.
-export const MOUTH_FIT: MouthFit = { cx: 0.048, cy: -0.025, halfWidth: 0.256, slope: -0.056, center: 0.162, upper: 0.03, lower: 0.036 };
+// On the scan's own lip line, centered under the nose tip (x = 0.046).
+export const MOUTH_FIT: MouthFit = { cx: 0.03, cy: 0.016, halfWidth: 0.21, slope: -0.075, center: 0.046, upper: 0.03, lower: 0.036 };
 
 const KEYS: (keyof MouthFit)[] = ['cx', 'cy', 'halfWidth', 'slope', 'center', 'upper', 'lower'];
 const LIMITS: Record<keyof MouthFit, [number, number]> = {
@@ -73,7 +73,7 @@ export function mountMouthTuner(host: TunerHost) {
   panel.className = 'mouth-tuner';
   panel.innerHTML = `
     <strong>Mouth calibration</strong>
-    <p>With <em>Raw scan</em> on, drag the two dots onto the corners of your mouth in the scan. Then turn it off to check the lips.</p>
+    <p>With <em>Raw scan</em> on, drag the two dots onto the corners of your mouth. Turn it off to see the lips and use the sliders.</p>
     <label><input type="checkbox" data-raw checked> Raw scan</label>
     <label>Open <input type="range" data-open min="0" max="1" step="0.01" value="0"></label>
     <label>Move left/right <input type="range" data-center min="-0.15" max="0.2" step="0.002"></label>
@@ -110,6 +110,8 @@ export function mountMouthTuner(host: TunerHost) {
     });
   };
   const update = () => {
+    // The lip sliders only show an effect on the modeled lips, so lock them while the raw scan is shown.
+    for (const slider of Object.values(sliders)) slider.disabled = raw;
     host.apply(fit, raw);
     readout.textContent = `?mouth=${formatMouthFit(fit)}`;
     history.replaceState(null, '', link());

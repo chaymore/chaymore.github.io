@@ -1,7 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import '../styles/context.css';
-import { brainPrompt, corePrompt, filesPrompt } from '../data/prompts';
+import { brainPrompt, corePrompt, filesPrompt, imessagePrompt } from '../data/prompts';
 
 const description =
   'Connect the sources that already know you, then run one prompt that compiles them into a private knowledge wiki.';
@@ -161,51 +161,39 @@ const description =
         <h2 id="panel-imessage-title">iMessage</h2>
         <p class="panel-kicker">Core relationships</p>
         <p>
-          This is the record of the people you actually talk to. It has to be exported from a Mac
-          that is signed into Messages. The iPhone has no full export.
+          Your texts are the best record of who you're actually close to. They're stored in a database
+          on your Mac, so you'll need a Mac that's signed in to Messages. Your iPhone can't export them.
+          A coding agent does the export for you, so there's nothing to install.
         </p>
         <ol class="steps">
           <li>
             <div class="step-copy">
-              On the Mac, open System Settings → Privacy &amp; Security → Full Disk Access. Turn it on
-              for Terminal. Quit Terminal and open it again. The exporter cannot read Messages without this.
+              Open System Settings → Privacy &amp; Security → Full Disk Access, and turn it on for the app
+              you run your agent in, like Terminal, Claude, Cursor, or VS Code. Quit that app and reopen it.
+              macOS won't let anything read your messages without this, including the agent.
             </div>
           </li>
           <li>
             <div class="step-copy">
-              Install <a href="https://github.com/ReagentX/imessage-exporter">imessage-exporter</a>.
-              If you don't have Homebrew, install it from <a href="https://brew.sh">brew.sh</a> first.
-              <div class="cmd">
-                <pre id="imessage-install">brew install imessage-exporter</pre>
-                <button type="button" data-copy="#imessage-install">Copy</button>
-              </div>
+              Open a coding agent like Claude Code, Codex, or Cursor and paste in the prompt below. It copies
+              your messages database, turns each conversation into a text file, and writes a summary of the
+              people you talk to most. Everything stays on your Mac.
             </div>
           </li>
           <li>
             <div class="step-copy">
-              Export the text, and leave the photos behind. A text folder is something a model can read.
-              <div class="cmd">
-                <pre id="imessage-cmd">imessage-exporter -f txt -o ~/Desktop/imessage-export</pre>
-                <button type="button" data-copy="#imessage-cmd">Copy</button>
-              </div>
+              When it's done, you'll have an <code>imessage-export</code> folder on your Desktop. Give that
+              folder to the center prompt.
             </div>
-          </li>
-          <li>
-            <div class="step-copy">
-              If that folder is enormous, run it again with a start date so the model can actually get through it.
-              <div class="cmd">
-                <pre id="imessage-recent">imessage-exporter -f txt -o ~/Desktop/imessage-export -s 2023-01-01</pre>
-                <button type="button" data-copy="#imessage-recent">Copy</button>
-              </div>
-            </div>
-          </li>
-          <li>
-            <div class="step-copy">When you run the center prompt, give it the <code>imessage-export</code> folder.</div>
           </li>
         </ol>
+        <div class="panel-actions">
+          <button class="copy-btn" type="button" data-copy="#imessage-prompt">Copy export prompt</button>
+        </div>
+        <pre class="prompt-block" id="imessage-prompt">{imessagePrompt}</pre>
         <p>
-          If the command cannot find the database, Messages in iCloud may still be downloading, or
-          Full Disk Access did not stick. Restart Terminal after turning it on.
+          If the agent says it can't open the database, Full Disk Access didn't take. Check that it's on
+          for the app you're actually using, then quit and reopen it.
         </p>
         <div class="panel-actions">
           <button class="gather" type="button" data-gather="imessage" aria-pressed="false">Mark as gathered</button>
@@ -216,33 +204,32 @@ const description =
         <h2 id="panel-linkedin-title">LinkedIn</h2>
         <p class="panel-kicker">The wider network</p>
         <p>
-          Connections, messages, and the jobs you've had. This is the set of people you know who
-          never became a text thread: work, school, and collaborators.
+          LinkedIn fills in the people you know from work and school who never became a text thread.
+          You request a copy of your data, wait for an email, and hand over the files.
         </p>
         <ol class="steps">
           <li>
             <div class="step-copy">
               On a computer, open
               <a href="https://www.linkedin.com/mypreferences/d/download-my-data">Get a copy of your data</a>.
-              The long way is Me → Settings &amp; Privacy → Data privacy → Get a copy of your data.
+              You can also find it under Me → Settings &amp; Privacy → Data privacy.
             </div>
           </li>
           <li>
             <div class="step-copy">
-              Request the larger data archive. Connections live in that archive. If your account still
-              shows a separate Connections checkbox, select that too.
+              Choose the larger data archive, since that's the one with your connections. If you also see
+              a separate Connections checkbox, check it too.
             </div>
           </li>
           <li>
             <div class="step-copy">
-              LinkedIn emails you when the download is ready. It often arrives the same day. They allow up to 24 hours.
+              Wait for LinkedIn's email. It usually shows up the same day, but it can take up to 24 hours.
             </div>
           </li>
           <li>
             <div class="step-copy">
-              Unzip it. <code>Connections.csv</code> is the file that matters most. Also keep messages,
-              profile, and positions if they are in the archive. The csv usually has a notes preamble
-              above the real header. The center prompt knows to skip it.
+              Unzip the download. <code>Connections.csv</code> is the file that matters most. Keep your
+              messages, profile, and positions files too if they're in there.
             </div>
           </li>
           <li><div class="step-copy">Give the unzipped folder to the center prompt.</div></li>
@@ -256,14 +243,16 @@ const description =
         <h2 id="panel-files-title">Files</h2>
         <p class="panel-kicker">Documents on your computer</p>
         <p>
-          Notes, school, work, and the writing that never made it into email. Run this in a tool that
-          can see the computer, on a cheap model like Sonnet or Luna. It should read the documents.
-          It should not touch photos, apps, or caches.
+          This pass reads the documents on your computer: notes, school work, drafts, and anything else
+          that never went out in an email. Paste the prompt into a tool that can see your files, like
+          Claude Code, Codex, or Claude's desktop app. A cheaper model like Sonnet or Luna is fine for it.
+          It only reads, and it leaves photos, apps, and system folders alone.
         </p>
         <div class="panel-actions">
-          <button class="copy-btn" type="button" data-copy="#files-prompt">Copy folder prompt</button>
+          <button class="copy-btn" type="button" data-copy="#files-prompt">Copy files prompt</button>
         </div>
         <pre class="prompt-block" id="files-prompt">{filesPrompt}</pre>
+        <p>When it's done, save what it wrote as <code>files.md</code> and give that to the center prompt.</p>
         <div class="panel-actions">
           <button class="gather" type="button" data-gather="files" aria-pressed="false">Mark as gathered</button>
         </div>
@@ -273,25 +262,23 @@ const description =
         <h2 id="panel-gmail-title">Gmail</h2>
         <p class="panel-kicker">Day-to-day correspondence</p>
         <p>
-          Connect it. Don't export the whole mailbox. The center prompt assumes the tool you run it in
-          can already read Gmail, and it only needs recent threads: what you are in the middle of,
-          who you write, and what keeps coming back.
+          Connect Gmail instead of exporting it. The center prompt only needs your recent email: what
+          you're working on, who you write to, and what keeps coming up. A full mailbox export is huge
+          and mostly noise.
         </p>
         <ol class="steps">
-          <li>Open the tool where you will paste the center prompt.</li>
+          <li>Open the AI tool where you'll run the center prompt.</li>
           <li>
-            Connect Gmail on the account you actually live in.
-            In Claude that is Settings → Connectors. In ChatGPT it is Settings → Apps.
-            In a coding agent, use a Google MCP server with Gmail enabled.
+            Connect Gmail with the account you use most. In Claude, that's Settings → Connectors. In ChatGPT,
+            it's Settings → Apps. In a coding agent, add a Google MCP server with Gmail turned on.
           </li>
-          <li>Leave the connection on. You do not attach a mail file unless the tool has no connector.</li>
+          <li>Leave it connected. The center prompt reads your email from there, so there's nothing to upload.</li>
         </ol>
         <details class="fallback">
-          <summary>No Google connection</summary>
+          <summary>Can't connect Gmail?</summary>
           <p>
-            Use <a href="https://takeout.google.com">Google Takeout</a> and export Mail. Takeout can also
-            export Calendar and Drive in the same pass. An mbox of your whole inbox is huge. Prefer the
-            connector, and only fall back to Takeout if the tool cannot connect.
+            Export your mail with <a href="https://takeout.google.com">Google Takeout</a> instead. You can grab
+            Calendar and Drive in the same export. Expect a big file, which is why connecting is better.
           </p>
         </details>
         <div class="panel-actions">
@@ -303,18 +290,17 @@ const description =
         <h2 id="panel-calendar-title">Google Calendar</h2>
         <p class="panel-kicker">How your time actually goes</p>
         <p>
-          The calendar is better evidence than a self-description. Recurring events, who you meet,
-          and which days are already spoken for.
+          Your calendar shows how you really spend your time, which often isn't how you'd describe it.
+          The center prompt looks at the pattern of your weeks: what repeats, who you meet with, and
+          which days are already full.
         </p>
         <ol class="steps">
-          <li>In the same tool, connect Google Calendar on the account you use.</li>
-          <li>Claude: Settings → Connectors. ChatGPT: Settings → Apps. A coding agent: a Google MCP server.</li>
-          <li>
-            You don't export it. The center prompt reads the shape of your weeks, not every event you have ever had.
-          </li>
+          <li>Connect Google Calendar in the same tool you use for Gmail, with the same account.</li>
+          <li>In Claude, that's Settings → Connectors. In ChatGPT, it's Settings → Apps. In a coding agent, use a Google MCP server.</li>
+          <li>You don't need to export anything. The center prompt reads it once it's connected.</li>
         </ol>
         <p>
-          If the tool cannot connect, <a href="https://takeout.google.com">Google Takeout</a> can export Calendar as well.
+          If your tool can't connect, <a href="https://takeout.google.com">Google Takeout</a> can export Calendar too.
         </p>
         <div class="panel-actions">
           <button class="gather" type="button" data-gather="calendar" aria-pressed="false">Mark as gathered</button>
@@ -325,20 +311,20 @@ const description =
         <h2 id="panel-drive-title">Google Drive</h2>
         <p class="panel-kicker">Notes, docs, and files</p>
         <p>
-          Drive is where the unfiled writing lives: notes, journals, decks, and the documents from work
-          that never made it into a message. Connect it. Do not hand over the entire drive.
+          Drive holds the writing that never went anywhere else: notes, journals, decks, and work docs.
+          Connect it so the center prompt can read the folders that matter, instead of exporting everything.
         </p>
         <ol class="steps">
-          <li>Connect Google Drive in the same tool, on the same account.</li>
-          <li>Claude: Settings → Connectors. ChatGPT: Settings → Apps. A coding agent: a Google MCP server.</li>
+          <li>Connect Google Drive in the same tool, with the same account.</li>
+          <li>In Claude, that's Settings → Connectors. In ChatGPT, it's Settings → Apps. In a coding agent, use a Google MCP server.</li>
           <li>
-            The center prompt looks for folders that resemble notes, journals, writing, or active work.
-            If it can't tell, it will ask you once which folders matter.
+            The center prompt looks for folders that seem like notes, journals, writing, or current work.
+            If it can't tell which ones matter, it'll ask you once.
           </li>
         </ol>
         <p>
-          If the tool cannot connect, export just those folders from
-          <a href="https://takeout.google.com">Google Takeout</a> rather than all of Drive.
+          If your tool can't connect, use <a href="https://takeout.google.com">Google Takeout</a> to export
+          only those folders, not your whole Drive.
         </p>
         <div class="panel-actions">
           <button class="gather" type="button" data-gather="drive" aria-pressed="false">Mark as gathered</button>
@@ -349,14 +335,15 @@ const description =
         <h2 id="panel-brain-title">Brain</h2>
         <p class="panel-kicker">Everything that was never written down</p>
         <p>
-          Run this in a separate chat. It interviews you, one question at a time, for the likes,
-          dislikes, people, and beliefs that are only in your head. When you are done, save the
-          markdown it writes and give that file to the center prompt.
+          Some of the most useful context isn't written down anywhere. This prompt interviews you for it,
+          one question at a time: the people who matter, what you like and don't, and what you believe.
+          Run it in a new chat, and answer out loud with voice mode if that's easier.
         </p>
         <div class="panel-actions">
           <button class="copy-btn" type="button" data-copy="#brain-prompt">Copy interview prompt</button>
         </div>
         <pre class="prompt-block" id="brain-prompt">{brainPrompt}</pre>
+        <p>When you're done, save what it writes as <code>interview.md</code> and give that to the center prompt.</p>
         <div class="panel-actions">
           <button class="gather" type="button" data-gather="brain" aria-pressed="false">Mark as gathered</button>
         </div>
