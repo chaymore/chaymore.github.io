@@ -307,11 +307,15 @@
       }
     },
     cat: (args) => {
-      if ((args[0] ?? '').startsWith('about')) {
+      const file = args[0] ?? '';
+      if (file.startsWith('about')) {
         print(site.intro);
         print(`current mode: inquiry / build / write`, 'dim');
+      } else if (file.startsWith('context')) {
+        print('public frame: finance, law, and systems.');
+        print('the portrait answers from an approved public snapshot.', 'dim');
       } else {
-        print(`cat: ${args[0] ?? ''}: No such file or directory`);
+        print(`cat: ${file}: No such file or directory`);
       }
     },
     whoami: () => {
