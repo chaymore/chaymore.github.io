@@ -36,7 +36,7 @@ npx wrangler r2 bucket create portrait-voice
 npx wrangler r2 object put portrait-voice/caleb-reference.wav --file=./caleb-reference.wav
 ```
 
-Uncomment the `r2_buckets` example in `wrangler.jsonc` (`VOICE_REFERENCE` → `portrait-voice`), then deploy. The object key defaults to `caleb-reference.wav`. Override it with the `FISH_REFERENCE_KEY` variable only if the object name differs. The binding does nothing harmful before the object exists: a missing object keeps the Harper fallback.
+`wrangler.jsonc` binds `VOICE_REFERENCE` to the `portrait-voice` bucket. Deploy after `caleb-reference.wav` is uploaded. The object key defaults to `caleb-reference.wav`. Override it with the `FISH_REFERENCE_KEY` variable only if the object name differs. A missing object keeps the Harper fallback.
 
 The transcript is small enough to be a secret:
 
