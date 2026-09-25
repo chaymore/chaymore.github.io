@@ -14,6 +14,7 @@ export const site = {
 export const pageLinks = [
   { href: '/', label: 'Home' },
   { href: '/about', label: 'About' },
+  { href: '/context', label: 'Context' },
   { href: '/competitions', label: 'Competitions' },
   { href: '/research', label: 'Research' },
   { href: '/writing', label: 'Writing' },

@@ -1,0 +1,67 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Nav from '../components/Nav.astro';
+import { site } from '../data/site';
+---
+
+<Layout
+  title={`${site.name} | Context`}
+  description="The public context behind Caleb Haymore's site and the Ask Caleb portrait."
+>
+  <Nav />
+
+  <main class="site-shell pt-28 pb-24 flex flex-col gap-8">
+    <header class="flex flex-col gap-3 pb-4">
+      <p class="type-line text-xs uppercase tracking-[0.22em] text-zinc-500">caleb@portfolio:~$ cat context.txt</p>
+      <h1 class="text-4xl font-bold text-zinc-100 reveal">Context</h1>
+      <p class="text-zinc-400 max-w-2xl reveal" style="--d: 0.08s">
+        The public frame for this site, and for the portrait that answers from it.
+      </p>
+      <div class="ascii-rule reveal" style="--d: 0.14s" aria-hidden="true"></div>
+    </header>
+
+    <section class="grid gap-4">
+      <article class="ascii-panel p-6 flex flex-col gap-4 text-zinc-300 leading-relaxed reveal" style="--d: 0.2s" data-title="frame">
+        <h2 class="font-bold text-zinc-100">Frame</h2>
+        <p>{site.intro}</p>
+        <p>
+          The work sits where capital, rules, and technical systems start shaping each other:
+          case competitions, research questions, and small tools that keep a day from disappearing.
+        </p>
+        <pre class="ascii-pre text-zinc-500">{`finance  ×  law  ×  systems
+compare, then synthesize`}</pre>
+      </article>
+
+      <article class="ascii-panel p-6 flex flex-col gap-4 text-zinc-300 leading-relaxed reveal" style="--d: 0.28s" data-title="portrait">
+        <h2 class="font-bold text-zinc-100">Ask Caleb</h2>
+        <p>
+          The homepage portrait is a digital version of me. It answers in the first person from an
+          approved public snapshot of work, interests, and projects that are already meant to be
+          shared. Private notes stay in the private wiki. When that snapshot does not cover a
+          question, the portrait says it does not have enough context.
+        </p>
+        <pre class="ascii-pre text-zinc-500">{`+------------------+----------------------------------+
+| source           | approved public pages            |
+| private wiki     | stays private                    |
+| missing context  | the portrait says so             |
++------------------+----------------------------------+`}</pre>
+        <p class="text-sm text-zinc-400">
+          Ask from the <a href="/" class="ascii-link">[portrait]</a>. A spoken question stays in the
+          browser until its transcript is sent. The spoken reply is what moves the mouth.
+        </p>
+      </article>
+
+      <article class="ascii-panel p-6 flex flex-col gap-4 text-zinc-300 leading-relaxed reveal" style="--d: 0.36s" data-title="map">
+        <h2 class="font-bold text-zinc-100">Where to look</h2>
+        <ul class="flex flex-col gap-2 text-sm">
+          <li><a href="/about" class="ascii-link">[about]</a> — the short bio</li>
+          <li><a href="/projects" class="ascii-link">[projects]</a> — systems and experiments</li>
+          <li><a href="/writing" class="ascii-link">[writing]</a> — essays and notes</li>
+          <li><a href="/research" class="ascii-link">[research]</a> — longer questions</li>
+          <li><a href="/competitions" class="ascii-link">[competitions]</a> — case work</li>
+          <li><a href="/contact" class="ascii-link">[contact]</a> — how to reach me</li>
+        </ul>
+      </article>
+    </section>
+  </main>
+</Layout>
