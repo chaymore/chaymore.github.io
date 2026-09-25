@@ -164,10 +164,11 @@ export const pointVertex = /* glsl */ `
       float shine = lip * step(lv, 0.) * exp(-pow(((lv-bot)/max(-bot, .001) - .5)/.2, 2.)) * (1.-smoothstep(.15, .55, abs(lu)));
       float seam = lipFront * (1.-smoothstep(.0025, .006, abs(lv))) * (1.-smoothstep(.88, 1.04, abs(lu))) * (1.-smoothstep(.05, .2, mouth.x));
       float corner = lipFront * (1.-smoothstep(.0, .018, length(vec2((abs(lu)-1.)*mouthScan.z, lv))));
-      size = mix(size, max(size, 1.75 * pointScale), lip);
-      size = mix(size, 1.05 * pointScale, shine * .8);
-      size = max(size, mix(size, 2.1 * pointScale, edge * .8));
-      size = max(size, mix(size, 2.3 * pointScale, max(seam, corner * .8)));
+      // Keep the lips close to the skin tone: only a slight lift, a faint outline, and a thin seam.
+      size = mix(size, max(size, 1.0 * pointScale), lip * .6);
+      size = mix(size, .85 * size, shine * .6);
+      size = max(size, mix(size, 1.2 * pointScale, edge * .5));
+      size = max(size, mix(size, 1.45 * pointScale, max(seam, corner * .6)));
     }
     visible = ascii > .5 && seed > .18 ? 0. : 1.;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(p,1.);
@@ -260,7 +261,8 @@ export const cavityVertex = /* glsl */ `
     float teeth=step(.5,n)*step(n,.86)*step(across,.6)*step(.25,mouth.x);
     float tongue=step(n,-.45)*step(.55,noise);
     keep=1.-max(teeth,tongue);
-    vec3 p=vec3(mouthCenter.x+position.x*width,mouthCenter.y-.0275*mouth.x+v*(.003+.0355*mouth.x),mouthCenter.z-.032-.038*(1.-position.z));
+    // Slightly larger than the opening so the dark interior reaches the lip edge.
+    vec3 p=vec3(mouthCenter.x+position.x*width*1.08,mouthCenter.y-.0275*mouth.x+v*(.004+.0355*mouth.x)*1.12,mouthCenter.z-.032-.038*(1.-position.z));
     gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);
     gl_PointSize=1.3*pixelRatio*pointScale;
   }
@@ -285,8 +287,16 @@ export const cavityBackFragment = /* glsl */ `
   void main(){if(mouth.x<.03)discard;gl_FragColor=vec4(1.);}
 `;
 
+// The occluding surface's coarse triangles stretch across the lips when the jaw opens.
+// Ease it back around the mouth so it hides the far side of the head, never the lip stipples.
 export const surfaceVertex = `${deform}
 varying vec3 portraitPosition;
-void main(){portraitPosition=speak(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(portraitPosition,1.);}`;
+void main(){
+  portraitPosition=speak(position);
+  vec3 p=portraitPosition;
+  float near=exp(-pow((p.y-mouthCenter.y+.0275*mouth.x)/.08,2.))*(1.-smoothstep(mouthScan.z*1.1,mouthScan.z*1.9,abs(p.x-mouthCenter.x)))*smoothstep(.5,.6,p.z);
+  p.z-=.03*near*smoothstep(.0,.15,mouth.x);
+  gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);
+}`;
 export const surfaceFragment = `${aperture}
 void main(){if(insideMouth()) discard;gl_FragColor=vec4(1.);}`;
