@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { PortraitSpeech, type MouthShape, type VisemeCue } from './portrait-speech';
-import { pointVertex, pointFragment, surfaceVertex, surfaceFragment } from './portrait-shaders';
+import { pointVertex, pointFragment, surfaceVertex, surfaceFragment, eyeVertex, eyeFragment, cavityVertex, cavityFragment, cavityBackVertex, cavityBackFragment } from './portrait-shaders';
 import { portraitTurn } from './portrait-turn.ts';
 import { createFaceMotion } from './portrait-face.ts';
 
@@ -23,6 +23,7 @@ export async function initHeadPortrait(root: HTMLElement) {
   const face = createFaceMotion();
   let playing = !reducedMotion.matches, dragging = false, attention = false;
   let previousX = 0, previousY = 0, frame = 0;
+  let pointerX = 0, pointerY = 0, pointerSeen = -Infinity;
   let renderer: THREE.WebGLRenderer | undefined;
   let observer: ResizeObserver | undefined;
   let attentionObserver: MutationObserver | undefined;
@@ -34,7 +35,7 @@ export async function initHeadPortrait(root: HTMLElement) {
   const on = <K extends keyof HTMLElementEventMap>(target: HTMLElement, name: K, handler: (event: HTMLElementEventMap[K]) => void) => target.addEventListener(name, handler, {signal:events.signal});
   addEventListener('pagehide', e => { if(!e.persisted) dispose(); else speech.disconnect(); }, {signal:events.signal});
   try {
-    renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+    renderer = new THREE.WebGLRenderer({canvas, antialias:true, preserveDrawingBuffer:import.meta.env.DEV});
     renderer.setClearColor(0xffffff);
     renderer.setPixelRatio(Math.min(devicePixelRatio,2));
     const responses = await Promise.all(['/head/bust.json','/head/bust-points.bin','/head/bust-surface.bin'].map(url => fetch(`${url}?revision=continuous-mouth-3`,{signal:events.signal})));
@@ -56,12 +57,30 @@ export async function initHeadPortrait(root: HTMLElement) {
     const ctx=atlas.getContext('2d')!; ctx.fillStyle='#fff';ctx.font='48px monospace';ctx.textAlign='center';ctx.textBaseline='middle';
     ['.',':','-','+','=','*','#','@'].forEach((glyph,i)=>ctx.fillText(glyph,i*64+32,33));
     const glyphs=new THREE.CanvasTexture(atlas); disposable.push(glyphs);
-    const uniforms={mouth:{value:new THREE.Vector3()},mouthCenter:{value:new THREE.Vector3(...meta.mouth)},pixelRatio:{value:renderer.getPixelRatio()},pointScale:{value:1},ascii:{value:0},glyphs:{value:glyphs},blink:{value:0},brow:{value:0}};
+    const uniforms={mouth:{value:new THREE.Vector3()},mouthCenter:{value:new THREE.Vector3(...meta.mouth)},pixelRatio:{value:renderer.getPixelRatio()},pointScale:{value:1},ascii:{value:0},glyphs:{value:glyphs},blink:{value:0},brow:{value:0},gaze:{value:new THREE.Vector2()}};
     const material=new THREE.ShaderMaterial({uniforms,vertexShader:pointVertex,fragmentShader:pointFragment}); disposable.push(material);
     const depthMaterial=new THREE.ShaderMaterial({uniforms,vertexShader:surfaceVertex,fragmentShader:surfaceFragment,colorWrite:false,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:2,polygonOffsetUnits:2}); disposable.push(depthMaterial);
-    const bust=new THREE.Group();
+    // bust carries the drag/idle turn; pose adds speech nods and tilts around the neck.
+    const neck=new THREE.Vector3(.05,-.75,-.1);
+    const bust=new THREE.Group(),pose=new THREE.Group(),head=new THREE.Group();
+    pose.position.copy(neck);head.position.copy(neck).negate();
+    bust.add(pose);pose.add(head);
     const surface=new THREE.Mesh(surfaceGeometry,depthMaterial);surface.renderOrder=-1;
-    bust.add(surface,new THREE.Points(geometry,material));
+    head.add(surface,new THREE.Points(geometry,material));
+    // Modeled irises: sunflower-sampled unit disks, one per eye.
+    const irisDots=130,eyeDisk:number[]=[],eyeSide:number[]=[],eyeSeed:number[]=[];
+    for(let side=0;side<2;side++)for(let i=0;i<irisDots;i++){
+      const r=Math.sqrt((i+.5)/irisDots),theta=i*2.39996323;
+      eyeDisk.push(Math.cos(theta)*r,Math.sin(theta)*r);eyeSide.push(side);eyeSeed.push((i*.7548776662)%1);
+    }
+    const eyeGeometry=new THREE.BufferGeometry();disposable.push(eyeGeometry);
+    eyeGeometry.setAttribute('position',new THREE.Float32BufferAttribute(new Float32Array(eyeSide.length*3),3));
+    eyeGeometry.setAttribute('disk',new THREE.Float32BufferAttribute(eyeDisk,2));
+    eyeGeometry.setAttribute('side',new THREE.Float32BufferAttribute(eyeSide,1));
+    eyeGeometry.setAttribute('seed',new THREE.Float32BufferAttribute(eyeSeed,1));
+    const eyeMaterial=new THREE.ShaderMaterial({uniforms,vertexShader:eyeVertex,fragmentShader:eyeFragment});disposable.push(eyeMaterial);
+    const eyes=new THREE.Points(eyeGeometry,eyeMaterial);eyes.frustumCulled=false;
+    head.add(eyes);
     // A recessed, dotted mouth interior is revealed when the real lower lip separates.
     const cavityPositions:number[]=[];
     for(let i=0;i<1800;i++) {
@@ -70,16 +89,11 @@ export async function initHeadPortrait(root: HTMLElement) {
     }
     const cavityGeometry=new THREE.BufferGeometry();disposable.push(cavityGeometry);
     cavityGeometry.setAttribute('position',new THREE.Float32BufferAttribute(cavityPositions,3));
-    const cavityMaterial=new THREE.ShaderMaterial({uniforms,vertexShader:`
-      uniform vec3 mouth;uniform vec3 mouthCenter;uniform float pixelRatio;uniform float pointScale;
-      void main(){
-        float width=.19*(1.-mouth.y*.18+mouth.z*.12);
-        vec3 p=vec3(mouthCenter.x+position.x*width,mouthCenter.y-.0275*mouth.x+position.y*(.006+.0355*mouth.x),mouthCenter.z-.032-.038*(1.-position.z));
-        p.y-=.10*(p.x-mouthCenter.x);
-        gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);
-        gl_PointSize=1.3*pixelRatio*pointScale;
-      }`,fragmentShader:`uniform vec3 mouth;void main(){if(mouth.x<.03||length(gl_PointCoord-.5)>.48)discard;gl_FragColor=vec4(0.,0.,0.,1.);}`});disposable.push(cavityMaterial);
-    bust.add(new THREE.Points(cavityGeometry,cavityMaterial));
+    const cavityMaterial=new THREE.ShaderMaterial({uniforms,vertexShader:cavityVertex,fragmentShader:cavityFragment});disposable.push(cavityMaterial);
+    head.add(new THREE.Points(cavityGeometry,cavityMaterial));
+    const backGeometry=new THREE.CircleGeometry(1,48);disposable.push(backGeometry);
+    const backMaterial=new THREE.ShaderMaterial({uniforms,vertexShader:cavityBackVertex,fragmentShader:cavityBackFragment,side:THREE.DoubleSide});disposable.push(backMaterial);
+    const back=new THREE.Mesh(backGeometry,backMaterial);back.frustumCulled=false;back.renderOrder=-1;head.add(back);
     const scene=new THREE.Scene();scene.add(bust);
     const camera=new THREE.OrthographicCamera(-3,3,2.1,-2.1,.1,20);camera.position.z=6;
     const render=()=>renderer!.render(scene,camera);
@@ -103,6 +117,22 @@ export async function initHeadPortrait(root: HTMLElement) {
     syncAttention();
     attentionObserver=new MutationObserver(syncAttention);
     attentionObserver.observe(root,{attributes:true,attributeFilter:['data-attention']});
+    addEventListener('pointermove',e=>{pointerX=e.clientX;pointerY=e.clientY;pointerSeen=performance.now();},{signal:events.signal,passive:true});
+    // Eye target: the visitor's cursor when it moved recently, otherwise the camera.
+    const eyeMid=new THREE.Vector3(.069,.486,.6),eyeWorld=new THREE.Vector3(),target=new THREE.Vector3(),headTurn=new THREE.Quaternion();
+    const lookTarget=(now:number,speaking:boolean)=>{
+      head.updateWorldMatrix(true,false);
+      eyeWorld.copy(eyeMid);head.localToWorld(eyeWorld);
+      const rect=canvas.getBoundingClientRect();
+      if(!speaking&&!dragging&&now-pointerSeen<2500&&rect.width&&rect.height){
+        const nx=(pointerX-rect.left)/rect.width,ny=(pointerY-rect.top)/rect.height;
+        target.set(camera.left+(camera.right-camera.left)*nx,camera.top-(camera.top-camera.bottom)*ny,3.2).sub(eyeWorld);
+      }else target.set(0,0,1);
+      head.getWorldQuaternion(headTurn);
+      target.normalize().applyQuaternion(headTurn.invert());
+      if(target.z<.45)return null;
+      return {x:Math.atan2(target.x,target.z),y:Math.asin(THREE.MathUtils.clamp(target.y,-1,1))};
+    };
     on(canvas,'pointerdown',e=>{if(attention)return;dragging=true;previousX=e.clientX;previousY=e.clientY;canvas.setPointerCapture(e.pointerId);});
     on(canvas,'pointermove',e=>{if(!dragging)return;bust.rotation.y+=(e.clientX-previousX)*.008;bust.rotation.x=THREE.MathUtils.clamp(bust.rotation.x+(e.clientY-previousY)*.005,-.3,.3);previousX=e.clientX;previousY=e.clientY;render();});
     on(canvas,'pointerup',()=>{dragging=false;});on(canvas,'pointercancel',()=>{dragging=false;});on(canvas,'lostpointercapture',()=>{dragging=false;});
@@ -121,6 +151,7 @@ export async function initHeadPortrait(root: HTMLElement) {
       setVisemes:(c,clock)=>{speech.setVisemes(c,clock);},
       disconnectAudio:()=>{speech.disconnect();},
     };
+    if(import.meta.env.DEV)(window as any).__portraitDebug={uniforms,pose,bust};
     window.calebPortrait=api;window.dispatchEvent(new CustomEvent('portrait:ready',{detail:api}));
     let previous=performance.now();const started=previous;let lastSpeech=-Infinity;
     const animate=(time:number)=>{
@@ -131,11 +162,18 @@ export async function initHeadPortrait(root: HTMLElement) {
         canvas.dataset.mouthOpen=shape.open.toFixed(3);
         canvas.dataset.viseme=speech.viseme;
         if(shape.open>.025||speech.viseme!=='rest')lastSpeech=time;
-        const pose=face.update(dt,{speaking:time-lastSpeech<500,reducedMotion:reducedMotion.matches});
-        const faceShift=Math.abs(uniforms.blink.value-pose.blink)+Math.abs(uniforms.brow.value-pose.brow);
-        uniforms.blink.value=pose.blink;uniforms.brow.value=pose.brow;
-        canvas.dataset.blink=pose.blink.toFixed(2);
-        const turn=portraitTurn({attention,playing,dragging,speaking:time-lastSpeech<500,warmedUp:time-started>2500});
+        const speaking=time-lastSpeech<500;
+        const facePose=face.update(dt,{speaking,reducedMotion:reducedMotion.matches,level:speech.level,look:lookTarget(time,speaking)});
+        const faceShift=Math.abs(uniforms.blink.value-facePose.blink)+Math.abs(uniforms.brow.value-facePose.brow)
+          +Math.abs(uniforms.gaze.value.x-facePose.gazeX)+Math.abs(uniforms.gaze.value.y-facePose.gazeY)
+          +Math.abs(pose.rotation.x-facePose.headPitch)+Math.abs(pose.rotation.y-facePose.headYaw)+Math.abs(pose.rotation.z-facePose.headRoll)
+          +Math.abs(pose.position.y-neck.y-facePose.breath);
+        uniforms.blink.value=facePose.blink;uniforms.brow.value=facePose.brow;
+        uniforms.gaze.value.set(facePose.gazeX,facePose.gazeY);
+        pose.rotation.set(facePose.headPitch,facePose.headYaw,facePose.headRoll);
+        pose.position.y=neck.y+facePose.breath;
+        canvas.dataset.blink=facePose.blink.toFixed(2);
+        const turn=portraitTurn({attention,playing,dragging,speaking,warmedUp:time-started>2500});
         let posed=false;
         if(turn==='front'&&(bust.rotation.x||bust.rotation.y||bust.rotation.z)){bust.rotation.set(0,0,0);posed=true;}
         if(turn==='face'){
@@ -148,6 +186,7 @@ export async function initHeadPortrait(root: HTMLElement) {
       }
       frame=requestAnimationFrame(animate);
     };
+    if(import.meta.env.DEV)Object.assign((window as any).__portraitDebug,{animate,render,lookTarget,head});
     resize();frame=requestAnimationFrame(animate);
   }catch(error){
     if(events.signal.aborted)return;
