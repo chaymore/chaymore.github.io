@@ -320,39 +320,72 @@ body.plain {
 }
 
 .source-dialog::backdrop {
-  background: rgba(20, 20, 20, 0.28);
+  background: rgba(24, 24, 24, 0.32);
+  backdrop-filter: blur(3px);
+}
+
+/* The scroll box takes focus when the dialog opens; don't draw a ring around the whole dialog. */
+.source-dialog:focus,
+.source-dialog:focus-visible,
+.dialog-shell:focus,
+.dialog-shell:focus-visible {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .source-dialog[open] {
+    animation: dialog-in 0.18s ease-out;
+  }
+  .source-dialog[open]::backdrop {
+    animation: backdrop-in 0.18s ease-out;
+  }
+}
+
+@keyframes dialog-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.985); }
+}
+
+@keyframes backdrop-in {
+  from { opacity: 0; }
 }
 
 .dialog-shell {
   position: relative;
   max-height: min(86vh, 44rem);
   overflow: auto;
-  padding: 1.35rem 1.3rem 1.25rem;
+  padding: 1.6rem 1.6rem 1.75rem;
 }
 
 .dialog-close-row {
   position: sticky;
   top: 0;
   z-index: 2;
+  height: 0;
   display: flex;
+  align-items: flex-start;
   justify-content: flex-end;
-  margin: -0.35rem -0.35rem 0.85rem;
-  padding: 0 0 0.35rem;
-  background: #fff;
+  margin: 0;
+}
+
+.dialog-close {
+  margin: -0.4rem -0.4rem 0 0;
+  box-shadow: 0 0 0 4px #fff;
 }
 
 .panel h2 {
   margin: 0;
+  padding-right: 4.5rem;
+  line-height: 1.15;
   color: #111;
   font-size: 1.55rem;
   font-weight: 650;
   letter-spacing: -0.03em;
 }
 
-.panel-kicker {
-  margin: 0.3rem 0 0;
+.panel .panel-kicker {
+  margin: 0.35rem 0 0;
   color: #8a8a8a;
-  font-size: 0.82rem;
+  font-size: 0.84rem;
 }
 
 .panel p,
@@ -362,22 +395,38 @@ body.plain {
   font-size: 0.95rem;
 }
 
-.panel a,
-.panel code {
-  display: inline;
-  white-space: normal;
+.panel p {
+  margin: 0.9rem 0 0;
+}
+
+.panel a {
   color: #111;
+  text-decoration: underline;
+  text-decoration-color: rgba(0, 0, 0, 0.28);
+  text-underline-offset: 0.18em;
+}
+
+.panel a:hover {
+  text-decoration-color: currentColor;
+}
+
+.panel code {
+  padding: 0.08em 0.35em;
+  border-radius: 6px;
+  background: #f2f2f2;
+  color: #1c1c1c;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.86em;
+  overflow-wrap: anywhere;
 }
 
 .step-copy {
-  display: block;
-  grid-column: 2;
   min-width: 0;
 }
 
 .steps {
   list-style: none;
-  margin: 1rem 0;
+  margin: 1.2rem 0 0;
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -396,28 +445,42 @@ body.plain {
   content: counter(step);
   position: absolute;
   left: 0;
-  top: 0.15rem;
-  color: #8a8a8a;
+  top: 0;
+  color: #9a9a9a;
   font-size: 0.85rem;
+  line-height: 1.6rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .cmd {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.65rem;
   width: 100%;
-  margin: 0.55rem 0 0.15rem;
-  padding: 0.7rem 0.75rem;
+  margin: 0.6rem 0 0.1rem;
+  padding: 0.5rem 0.5rem 0.5rem 0.85rem;
   border-radius: 12px;
   background: #f4f4f4;
+}
+
+.cmd button {
+  flex: none;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+  padding: 0.4rem 0.8rem;
+}
+
+.cmd button:hover {
+  background: #fafafa;
 }
 
 .cmd pre {
   flex: 1;
   min-width: 0;
   margin: 0;
+  padding: 0.3rem 0;
   white-space: pre-wrap;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   color: #1c1c1c;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.78rem;
@@ -426,6 +489,7 @@ body.plain {
 
 .prompt-block {
   margin-top: 0.8rem;
+  border: 1px solid rgba(0, 0, 0, 0.04);
   padding: 0.85rem 0.85rem;
   border-radius: 14px;
   background: #f6f6f6;
@@ -438,7 +502,13 @@ body.plain {
   flex-wrap: wrap;
   gap: 0.6rem;
   align-items: center;
-  margin-top: 1rem;
+  margin-top: 1.1rem;
+}
+
+.panel-actions:last-child {
+  margin-top: 1.4rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid #efefef;
 }
 
 .fallback {
@@ -455,6 +525,32 @@ body.plain {
 
 .fallback p {
   margin-top: 0.55rem;
+}
+
+.panel ol.steps + p {
+  margin-top: 1.1rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 520px) {
+  /* Give commands the full width on phones; the copy button drops below. */
+  .cmd {
+    flex-wrap: wrap;
+    padding: 0.6rem 0.6rem 0.6rem 0.8rem;
+  }
+
+  .cmd pre {
+    flex-basis: 100%;
+  }
+
+  .cmd button {
+    margin-left: auto;
+  }
+
+  .dialog-shell {
+    padding: 1.35rem 1.2rem 1.5rem;
+  }
 }
 
 @media (max-width: 860px) {
