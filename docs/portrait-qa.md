@@ -24,7 +24,7 @@ npm run deploy
 
 Use separate long random values for `SYNC_TOKEN` and `RATE_LIMIT_SALT`. Save the deployed `https://…workers.dev` URL.
 
-The default text model is `openai/gpt-4o-mini`; the default speech model is `microsoft/mai-voice-2-flash` with its supported `en-US-Harper:MAI-Voice-2` voice. Both can be changed in `wrangler.jsonc`. This is a synthetic voice, not a clone of Caleb's voice. The UI identifies the sound as AI-generated.
+The default text model is `openai/gpt-4o-mini`. Speech stays on `microsoft/mai-voice-2-flash` with `en-US-Harper:MAI-Voice-2` until a reference clip or Fish voice id is configured. Harper is synthetic, and the chat note says “AI-generated voice.” With a reference configured, `/speak` uses Fish Audio through OpenRouter (`fish-audio/s2.1-pro-free:free` by default; `fish-audio/s2.1-pro` when `FISH_TTS_MODEL` is set to that slug) and the note says “AI voice clone.” See [VOICE-CLONE.md](VOICE-CLONE.md) for the 20–45 second clip, the R2 object, and the `FISH_REFERENCE_ID` secret. `TTS_MODEL` and `TTS_VOICE` in `wrangler.jsonc` still select the Harper fallback.
 
 ## 2. Enable the homepage
 
@@ -74,7 +74,7 @@ A curated `Public Portrait Context/portrait-profile` source already exists in th
 ## API behavior
 
 - `POST /ask` accepts a question and up to four recent messages, retrieves up to eight D1 chunks, and streams plain text.
-- `POST /speak` converts the completed answer into MP3.
+- `POST /speak` converts the completed answer into MP3. Without a voice reference it uses the Harper fallback; with one, it uses the Fish clone and sets `x-portrait-voice`. See [VOICE-CLONE.md](VOICE-CLONE.md).
 - Spoken questions are transcribed in the browser with the Web Speech API. The transcript is shown as the visitor message and then sent to the existing `/ask` and `/speak` routes. No speech-to-text secret or Worker route is required. Mouth animation is driven only by the reply MP3.
 - `POST /admin/sync` replaces the D1 snapshot and requires the sync bearer token.
 - `GET /health` reports the indexed chunk count but no private content.
@@ -88,6 +88,10 @@ Create `portrait-worker/.dev.vars` (gitignored):
 OPENROUTER_API_KEY=...
 SYNC_TOKEN=...
 RATE_LIMIT_SALT=...
+# Optional clone. See docs/VOICE-CLONE.md. A 20–45s clip belongs in R2, not here.
+# FISH_REFERENCE_ID=
+# FISH_REFERENCE_TRANSCRIPT=
+# FISH_REFERENCE_AUDIO=
 ```
 
 Replace the D1 ID in `wrangler.jsonc`, then:

@@ -191,6 +191,7 @@ export function initPortraitChat(root: HTMLElement) {
     });
     if (id !== playback) return;
     if (!response.ok) throw new Error(await errorMessage(response));
+    note.textContent = response.headers.get('x-portrait-voice') === 'clone' ? 'AI voice clone' : 'AI-generated voice';
     const url = URL.createObjectURL(await response.blob());
     if (id !== playback) { URL.revokeObjectURL(url); return; }
     audio = new Audio(url);

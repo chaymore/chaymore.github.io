@@ -106,7 +106,7 @@ function messages(log) {
 
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 
-function install({ secure = true, recognition = true, ask = 'I am building portraits.', failAsk = false } = {}) {
+function install({ secure = true, recognition = true, ask = 'I am building portraits.', failAsk = false, voice = 'synthetic' } = {}) {
   const calls = [];
   const connected = [];
   let portraitStops = 0;
@@ -133,7 +133,7 @@ function install({ secure = true, recognition = true, ask = 'I am building portr
         }),
       };
     }
-    return { ok: true, blob: async () => new Blob(['mp3']) };
+    return { ok: true, headers: new Headers({ 'x-portrait-voice': voice }), blob: async () => new Blob(['mp3']) };
   };
   globalThis.window = {
     isSecureContext: secure,
@@ -192,6 +192,21 @@ test('spoken questions reuse ask, visible text, and reply audio lip sync', async
   } finally {
     performance.now = originalNow;
   }
+});
+
+test('a cloned reply is labeled and still lip-syncs from the mp3', async () => {
+  const browser = install({ voice: 'clone' });
+  const ui = mount();
+  initPortraitChat(ui.root);
+  ui.input.value = 'Say this in my voice';
+  ui.form.dispatch('submit', { preventDefault() {} });
+  await flush();
+  await flush();
+  assert.equal(ui.note.textContent, 'AI voice clone');
+  assert.equal(browser.connected.length, 1);
+  assert.ok(browser.connected[0] instanceof FakeAudio);
+  assert.equal(browser.connected[0].played, true);
+  assert.deepEqual(browser.calls.at(-1).body, { text: 'I am building portraits.' });
 });
 
 test('holding the mic commits the phrase and a second question keeps history', async () => {
