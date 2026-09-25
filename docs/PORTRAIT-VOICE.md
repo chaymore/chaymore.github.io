@@ -37,7 +37,14 @@ Timed shapes override the analyser. Gaps and the end of the cue sequence return 
 
 For direct control, call `setMouth({ open, round, wide })` with values between 0 and 1. `resetMouth()` returns to rest; `disconnectAudio()` also removes analysis. Mouth transitions are smoothed, and the portrait eases forward while a reply is playing.
 
-The bust also blinks and shifts the brows slightly while it is on screen. Blinks are short and several seconds apart, a little more often while a reply is playing. The brow lift during speech is only a few millimetres in the stipple field. `prefers-reduced-motion: reduce` disables both. These motions are procedural; they are not driven by the microphone or by the reply waveform.
+The bust also moves on its own while it is on screen (`src/scripts/portrait-face.ts`):
+
+- **Eyes** hold fixations joined by fast saccades, with tiny drift. They look at the visitor's cursor when it moved in the last 2.5 seconds, otherwise at the camera, and wander when the viewer is out of view. While a reply plays they hold eye contact, with an occasional glance away at the start of a thought. The upper lid follows the gaze up and down.
+- **Blinks** close fast and open slower, a few seconds apart, a little more often while speaking and sometimes paired with a large eye movement.
+- **Head** drifts slowly at rest and breathes. During a reply, syllable onsets in the reply loudness (`PortraitSpeech.level`) kick small nods, and each phrase picks a new slight tilt. The head rotates around the neck, layered on top of the drag or face-the-camera turn.
+- **Brows** lift at phrase starts and on stressed syllables.
+
+`prefers-reduced-motion: reduce` disables all of it. None of this uses the microphone.
 
 Opening Ask Caleb snaps the bust to face the camera and holds that pose until the panel closes. Replies drive the mouth from `POST /speak`. The homepage has no separate sample-voice control.
 

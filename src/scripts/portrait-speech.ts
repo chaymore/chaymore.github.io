@@ -48,12 +48,14 @@ export class PortraitSpeech {
   private connection = 0;
   readonly current: MouthShape = { ...REST };
   viseme: Viseme = 'rest';
+  /** Reply loudness, 0–1, for head and brow motion. */
+  level = 0;
 
   setMouth(shape: Partial<MouthShape>) { this.mode = 'manual'; this.manual = cleanShape(shape); }
   setVisemes(cues: VisemeCue[], clock: () => number) {
     this.cues = validateCues(cues); this.clock = clock; this.mode = 'visemes';
   }
-  reset() { this.mode = 'manual'; this.manual = { ...REST }; this.viseme = 'rest'; this.audioMs = 0; this.lips.reset(); }
+  reset() { this.level = 0; this.mode = 'manual'; this.manual = { ...REST }; this.viseme = 'rest'; this.audioMs = 0; this.lips.reset(); }
   disconnect() {
     this.connection++;
     if (this.source && this.analyser) this.source.disconnect(this.analyser);
@@ -95,10 +97,12 @@ export class PortraitSpeech {
   }
   update(dt: number): MouthShape {
     let target = this.manual;
+    let level = 0;
     if (this.mode === 'visemes') {
       const time = this.clock();
       this.viseme = visemeAt(this.cues, time);
       target = SHAPES[this.viseme];
+      level = target.open;
     } else if (this.mode === 'audio' && this.analyser) {
       this.analyser.getFloatTimeDomainData(this.samples);
       let sum = 0;
@@ -107,13 +111,17 @@ export class PortraitSpeech {
       this.analyser.getByteFrequencyData(this.spectrum);
       this.audioMs += Math.min(100, Math.max(0, Number.isFinite(dt) ? dt*1000 : 0));
       const detected = this.lips.read(this.spectrum, this.sampleRate, this.fftSize, this.audioMs);
+      level = levelToMouth(rms);
       // The noise gate stays on waveform energy. Shape comes from the viseme, not loudness.
       if (levelToMouth(rms) === 0) { this.viseme = 'rest'; target = REST; }
       else { this.viseme = detected; target = SHAPES[detected]; }
-    } else this.viseme = 'rest';
+    } else { this.viseme = 'rest'; level = target.open; }
     const step = Math.max(0, Math.min(.1, Number.isFinite(dt) ? dt : 0));
+    this.level += (level - this.level) * (1 - Math.exp(-step * 20));
     for (const key of ['open','round','wide'] as const) {
-      const speed = target[key] > this.current[key] ? 36 : 28;
+      // The jaw is heavier than the lips: opening eases a little slower than lip shaping,
+      // which blends neighbouring visemes instead of snapping between them.
+      const speed = key === 'open' ? (target[key] > this.current[key] ? 24 : 18) : (target[key] > this.current[key] ? 30 : 22);
       this.current[key] += (target[key]-this.current[key]) * (1-Math.exp(-step*speed));
       if (this.current[key] < .0001) this.current[key] = 0;
     }

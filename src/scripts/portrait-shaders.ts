@@ -8,65 +8,92 @@ export const aperture = /* glsl */ `
     float x = portraitPosition.x-mouthCenter.x;
     float y = portraitPosition.y-mouthCenter.y+.0275*mouth.x+.10*x;
     vec2 uv = vec2(x/width, y/(.003+.0355*mouth.x));
-    return mouth.x>.03 && portraitPosition.z>.5 && dot(uv,uv)<1.;
+    // Lens-shaped opening: tapers to the corners like real lips.
+    return mouth.x>.03 && portraitPosition.z>.5 && abs(uv.x)<1. && abs(uv.y)<1.-uv.x*uv.x;
   }
 `;
+
+// Eye sockets measured from the scan (head space). The scan cannot capture eyes,
+// so eyeballs are modeled here and the lids are an analytic almond per eye.
+// Needs a blink uniform declared before it.
+export const lids = /* glsl */ `
+  uniform vec2 gaze;
+  const vec3 eyeL = vec3(-.150,.486,.515);
+  const vec3 eyeR = vec3(.288,.486,.515);
+  const float eyeRadius = .084;
+  const float eyeMidline = .069;
+  // u runs -1..1 across the eye, positive toward the nose. y is height above the eye center.
+  void eyeLids(vec2 p, out float u, out float y, out float upper, out float lower, out float upperOpen) {
+    bool left = p.x < eyeMidline;
+    vec3 c = left ? eyeL : eyeR;
+    u = (left ? 1. : -1.) * (p.x - c.x) / .088;
+    y = p.y - c.y;
+    float s = max(0., 1. - u*u);
+    // The upper lid rides with the gaze; the lower lid follows a little.
+    upperOpen = .031 * pow(s, .7) * (1. + .12*u) + gaze.y * .03;
+    lower = -.025 * pow(s, .9) * (1. - .12*u) + gaze.y * .008 + blink * .004;
+    upper = mix(upperOpen, lower + .001, blink);
+  }
+`;
+
 // Shared deformation keeps the visible stipples and depth surface perfectly aligned.
 export const deform = /* glsl */ `
   uniform vec3 mouth;
   uniform vec3 mouthCenter;
   uniform float blink;
   uniform float brow;
+  const vec3 jawPivot = vec3(.05, .24, .10);
   float eyeMask(vec2 p, vec2 c, vec2 r) {
     return 1. - smoothstep(.78, 1.18, length((p - c) / r));
   }
-  float blinkIris(vec3 p) {
-    float front = smoothstep(.42, .62, p.z);
-    float left = eyeMask(p.xy, vec2(-.163, .490), vec2(.052, .028));
-    float right = eyeMask(p.xy, vec2(.298, .493), vec2(.085, .032));
-    return max(left, right) * front;
-  }
-  float blinkLid(vec3 p) {
-    float front = smoothstep(.42, .62, p.z);
-    float left = eyeMask(p.xy, vec2(-.163, .508), vec2(.072, .022));
-    float right = eyeMask(p.xy, vec2(.298, .512), vec2(.110, .026));
-    return max(left, right) * front;
-  }
   vec3 express(vec3 p) {
     float front = smoothstep(.38, .62, p.z);
-    float leftEye = eyeMask(p.xy, vec2(-.163, .490), vec2(.078, .042));
-    float rightEye = eyeMask(p.xy, vec2(.298, .493), vec2(.125, .048));
-    float leftUpper = leftEye * smoothstep(-.1, .55, (p.y - .490) / .042);
-    float rightUpper = rightEye * smoothstep(-.1, .55, (p.y - .493) / .048);
-    float upper = max(leftUpper, rightUpper) * front;
-    float leftLower = leftEye * smoothstep(.2, -.6, (p.y - .490) / .042);
-    float rightLower = rightEye * smoothstep(.2, -.6, (p.y - .493) / .048);
-    float lower = max(leftLower, rightLower) * front;
-    p.y -= blink * .052 * upper;
-    p.y += blink * .012 * lower;
+    // Lid skin and the crease above it follow the closing lid a little.
+    float leftLid = eyeMask(p.xy, vec2(-.150, .515), vec2(.095, .03));
+    float rightLid = eyeMask(p.xy, vec2(.288, .515), vec2(.095, .03));
+    p.y -= blink * .012 * max(leftLid, rightLid) * front;
     float leftBrow = eyeMask(p.xy, vec2(-.145, .590), vec2(.115, .028));
     float rightBrow = eyeMask(p.xy, vec2(.279, .564), vec2(.145, .032));
-    p.y += brow * .018 * max(leftBrow, rightBrow) * front;
+    float browZone = max(leftBrow, rightBrow) * front;
+    p.y += brow * .018 * browZone;
+    // A raised brow lifts the forehead skin just above it too.
+    float leftForehead = eyeMask(p.xy, vec2(-.145, .66), vec2(.16, .07));
+    float rightForehead = eyeMask(p.xy, vec2(.279, .64), vec2(.18, .07));
+    p.y += max(brow, 0.) * .007 * max(leftForehead, rightForehead) * front;
     return p;
   }
   vec3 speak(vec3 p) {
     float front = smoothstep(.15, .5, p.z);
-    float across = 1. - smoothstep(.24, .58, abs(p.x-mouthCenter.x));
-    float line = p.y - mouthCenter.y + .10 * (p.x-mouthCenter.x);
-    float lipSpan = 1. - smoothstep(.15, .23, abs(p.x-mouthCenter.x));
+    float dx = p.x-mouthCenter.x;
+    float across = 1. - smoothstep(.24, .58, abs(dx));
+    float line = p.y - mouthCenter.y + .10 * dx;
+    float lipSpan = 1. - smoothstep(.15, .23, abs(dx));
     float blend = mix(.15, .009, lipSpan);
     float lower = 1. - smoothstep(-blend, blend, line);
-    float neck = smoothstep(-.68, -.25, p.y);
-    float weight = front * across * lower * neck;
-    float lips = exp(-pow(line/.105, 2.)) * (1.-smoothstep(.15,.31,abs(p.x-mouthCenter.x))) * front;
-    // Keep the chin nearly still; the opening comes primarily from the lower lip.
-    p.y -= mouth.x * (.008 * weight + .055 * lips * lower);
-    p.x = mix(p.x, mouthCenter.x + (p.x-mouthCenter.x)*(1.-mouth.y*.18+mouth.z*.12), lips);
+    float neck = smoothstep(-.62, -.36, p.y);
+    float lips = exp(-pow(line/.105, 2.)) * (1.-smoothstep(.15,.31,abs(dx))) * front;
+    // The jaw hinges near the ears, so the chin swings down and slightly back
+    // and the cheeks stretch with it. The lower lip adds a small drop of its own.
+    float jaw = front * across * lower * neck * smoothstep(.1, .3, p.z);
+    float angle = mouth.x * .075;
+    vec3 r = p - jawPivot;
+    vec3 swung = jawPivot + vec3(r.x, r.y*cos(angle) - r.z*sin(angle), r.y*sin(angle) + r.z*cos(angle));
+    p = mix(p, swung, jaw);
+    p.y -= mouth.x * .012 * lips * lower;
+    p.x = mix(p.x, mouthCenter.x + dx*(1.-mouth.y*.18+mouth.z*.12), lips);
     p.z += mouth.y * .025 * lips;
     p.y += mouth.x * .008 * lips * (1.-lower);
+    // Wide shapes pull the corners up and back and push the cheeks up.
+    float corners = lips * smoothstep(.08, .17, abs(dx));
+    p.y += mouth.z * .009 * corners;
+    p.z -= mouth.z * .005 * corners;
+    float cheeks = max(eyeMask(p.xy, vec2(mouthCenter.x-.2, .17), vec2(.12, .09)), eyeMask(p.xy, vec2(mouthCenter.x+.25, .17), vec2(.12, .09))) * front;
+    p.y += mouth.z * .006 * cheeks;
+    p.z += mouth.z * .004 * cheeks;
     return express(p);
   }
 `;
+
 export const pointVertex = /* glsl */ `
   attribute float shade;
   attribute float seed;
@@ -78,6 +105,7 @@ export const pointVertex = /* glsl */ `
   varying float visible;
   varying vec3 portraitPosition;
   ${deform}
+  ${lids}
   void main() {
     vec3 p = speak(position);
     portraitPosition = p;
@@ -85,20 +113,21 @@ export const pointVertex = /* glsl */ `
     float light = max(0.,dot(n,normalize(vec3(-.35,.55,1.))));
     // Black pigment; light and texture affect mark area, never pigment color.
     ink = clamp(.08 + .78 * pow(1.-shade,1.45) + .14 * (1.-light), .06, 1.);
-    float baseSize = .65 + .45 * pow(ink,.7);
-    // Keep eye emphasis tight and quiet: only existing dark iris/lid detail grows.
-    vec2 leftIris = (position.xy-vec2(-.205,.455))/vec2(.058,.042);
-    vec2 rightIris = (position.xy-vec2(.225,.425))/vec2(.058,.042);
-    vec2 leftLid = (position.xy-vec2(-.205,.482))/vec2(.108,.025);
-    vec2 rightLid = (position.xy-vec2(.225,.452))/vec2(.108,.025);
-    float iris = 1.-smoothstep(.7,1.,min(length(leftIris),length(rightIris)));
-    float upperLid = 1.-smoothstep(.65,1.,min(length(leftLid),length(rightLid)));
-    float darkDetail = smoothstep(.52,.82,1.-shade);
-    float front = smoothstep(.4,.56,position.z);
-    float eyeLift = front * darkDetail * (.22*iris + .12*upperLid);
-    float size = baseSize * (1.+eyeLift * (1.-blink)) * pointScale;
-    size *= mix(1., .04, blinkIris(position) * blink);
-    size *= 1. + blinkLid(position) * blink * 1.1;
+    float size = (.65 + .45 * pow(ink,.7)) * pointScale;
+    // Eyes: the scan's smeared eye becomes pale sclera where the lids are open,
+    // lid skin where a blink covers it, and a dark lash line along each lid edge.
+    float u, y, upper, lower, upperOpen;
+    eyeLids(position.xy, u, y, upper, lower, upperOpen);
+    float eyeZone = smoothstep(.45,.55,position.z) * (1.-smoothstep(.95,1.2,abs(u))) * (1.-smoothstep(.05,.08,abs(y)));
+    float inside = 1.-smoothstep(.9,1.,abs(u));
+    float open = eyeZone * inside * smoothstep(lower, lower+.003, y) * (1.-smoothstep(upper-.003, upper, y));
+    float covered = eyeZone * inside * step(upper, y) * (1.-smoothstep(upperOpen, upperOpen+.004, y)) * step(lower, y);
+    float lash = eyeZone * (1.-smoothstep(.0035, .0085, abs(y-upper))) * (1.-smoothstep(.8, 1.05, abs(u)));
+    float lowerLash = eyeZone * (1.-smoothstep(.002, .006, abs(y-lower))) * (1.-smoothstep(.6, .95, abs(u)));
+    size = mix(size, .28 * size, open);
+    size = mix(size, min(size, .85 * pointScale), covered);
+    size = max(size, mix(size, 1.45 * pointScale, lash));
+    size = max(size, mix(size, 1.0 * pointScale, lowerLash * (1.-blink)));
     visible = ascii > .5 && seed > .18 ? 0. : 1.;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(p,1.);
     gl_Position.z -= .0008 * gl_Position.w;
@@ -123,6 +152,100 @@ export const pointFragment = /* glsl */ `
     gl_FragColor=vec4(0.,0.,0.,1.);
   }
 `;
+
+// Stippled irises on modeled eyeballs. Each dot sits on a unit disk that is
+// wrapped onto the eyeball around the gaze direction, then clipped by the lids.
+export const eyeVertex = /* glsl */ `
+  attribute vec2 disk;
+  attribute float side;
+  attribute float seed;
+  uniform float pixelRatio;
+  uniform float pointScale;
+  uniform float ascii;
+  varying float radius;
+  varying float visible;
+  uniform float blink;
+  ${lids}
+  void main() {
+    bool left = side < .5;
+    vec3 c = left ? eyeL : eyeR;
+    // Both eyes converge slightly on a viewer in front of the face.
+    vec2 g = gaze + vec2(left ? .02 : -.02, 0.);
+    vec3 d = vec3(sin(g.x)*cos(g.y), sin(g.y), cos(g.x)*cos(g.y));
+    vec3 e1 = normalize(cross(vec3(0.,1.,0.), d));
+    vec3 e2 = cross(d, e1);
+    vec3 dir = normalize(d + (e1*disk.x + e2*disk.y) * .5);
+    vec3 p = c + eyeRadius * dir;
+    float u, y, upper, lower, upperOpen;
+    eyeLids(p.xy, u, y, upper, lower, upperOpen);
+    float inside = step(abs(u), .95) * step(lower + .0012, y) * step(y, upper - .0012);
+    vec3 nView = normalize(normalMatrix * dir);
+    // A fixed catchlight toward the key light keeps the eyes looking wet and alive.
+    vec3 catchDir = normalize(normalize(vec3(-.35,.55,1.)) + vec3(0.,0.,1.));
+    float glint = step(.989, dot(nView, catchDir));
+    float facing = step(.25, nView.z);
+    visible = inside * (1.-glint) * facing * (1.-step(.5, ascii));
+    float rho = length(disk);
+    float fiber = .5 + .5*sin(atan(disk.y, disk.x)*19. + seed*6.2831);
+    radius = rho < .36 ? .4 : rho > .84 ? .28 : mix(.1, .23, fiber);
+    vec4 mv = modelViewMatrix * vec4(p, 1.);
+    mv.z += .015;
+    gl_Position = projectionMatrix * mv;
+    gl_PointSize = 3. * pixelRatio * pointScale;
+  }
+`;
+export const eyeFragment = /* glsl */ `
+  varying float radius;
+  varying float visible;
+  void main() {
+    if (visible < .5 || length(gl_PointCoord-.5) > radius) discard;
+    gl_FragColor = vec4(0.,0.,0.,1.);
+  }
+`;
+
+// Recessed, dotted mouth interior revealed when the lower lip separates:
+// a pale band of upper teeth under the lip and a lighter tongue at the bottom.
+export const cavityVertex = /* glsl */ `
+  uniform vec3 mouth; uniform vec3 mouthCenter; uniform float pixelRatio; uniform float pointScale;
+  varying float keep;
+  void main(){
+    float width=.19*(1.-mouth.y*.18+mouth.z*.12);
+    float lens=sqrt(max(0.,1.-position.x*position.x));
+    float v=position.y*lens;
+    float across=abs(position.x);
+    float noise=fract(sin(dot(position.xy,vec2(12.9898,78.233)))*43758.5453);
+    float n=v/max(lens*lens,.001);
+    // Upper teeth sit just under a thin lip shadow.
+    float teeth=step(.36,n)*step(n,.84)*step(across,.7)*step(.25,mouth.x);
+    float tongue=step(n,-.45)*step(.55,noise);
+    keep=1.-max(teeth,tongue);
+    vec3 p=vec3(mouthCenter.x+position.x*width,mouthCenter.y-.0275*mouth.x+v*(.003+.0355*mouth.x),mouthCenter.z-.032-.038*(1.-position.z));
+    p.y-=.10*(p.x-mouthCenter.x);
+    gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);
+    gl_PointSize=1.3*pixelRatio*pointScale;
+  }
+`;
+export const cavityFragment = /* glsl */ `
+  uniform vec3 mouth; varying float keep;
+  void main(){if(mouth.x<.03||keep<.5||length(gl_PointCoord-.5)>.48)discard;gl_FragColor=vec4(0.,0.,0.,1.);}
+`;
+
+// White backdrop behind the mouth interior so the far side of the head never shows through.
+export const cavityBackVertex = /* glsl */ `
+  uniform vec3 mouth; uniform vec3 mouthCenter;
+  void main(){
+    float width=.19*(1.-mouth.y*.18+mouth.z*.12);
+    float lens=sqrt(max(0.,1.-position.x*position.x));
+    vec3 p=vec3(mouthCenter.x+position.x*width*1.02,mouthCenter.y-.0275*mouth.x+position.y*lens*(.004+.0355*mouth.x),mouthCenter.z-.075);
+    p.y-=.10*(p.x-mouthCenter.x);
+    gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);
+  }
+`;
+export const cavityBackFragment = /* glsl */ `
+  uniform vec3 mouth;
+  void main(){if(mouth.x<.03)discard;gl_FragColor=vec4(1.);}
+`;
+
 export const surfaceVertex = `${deform}
 varying vec3 portraitPosition;
 void main(){portraitPosition=speak(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(portraitPosition,1.);}`;
