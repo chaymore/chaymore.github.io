@@ -16,10 +16,10 @@
     "OPENROUTER_MODEL": "openai/gpt-4o-mini",
     "TTS_MODEL": "microsoft/mai-voice-2-flash",
     "TTS_VOICE": "en-US-Harper:MAI-Voice-2",
-    "FISH_TTS_MODEL": "fish-audio/s2.1-pro-free:free"
+    "FISH_TTS_MODEL": "fish-audio/s2.1-pro"
   },
   // Voice clone stays off until caleb-reference.wav exists in this bucket. See docs/VOICE-CLONE.md.
-  // Paid Fish model: set FISH_TTS_MODEL to "fish-audio/s2.1-pro".
+  // Paid Fish model: about 0.7 s faster to first audio than "fish-audio/s2.1-pro-free:free" (Sept 2026 benchmark).
   // Secret placeholder (not a var): FISH_REFERENCE_ID
   // Optional transcript secret: FISH_REFERENCE_TRANSCRIPT
   // Reference clip. A 20–45s recording does not fit in a Worker secret.
