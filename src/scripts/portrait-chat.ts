@@ -189,19 +189,62 @@ export function initPortraitChat(root: HTMLElement) {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ text }),
     });
-    if (id !== playback) return;
+    if (id !== playback) { void response.body?.cancel(); return; }
     if (!response.ok) throw new Error(await errorMessage(response));
     note.textContent = response.headers.get('x-portrait-voice') === 'clone' ? 'AI voice clone' : 'AI-generated voice';
-    const url = URL.createObjectURL(await response.blob());
+    const element = new Audio();
+    audio = element;
+    // Start on the first chunk when the browser can stream MP3; otherwise wait for the whole file.
+    const url = response.body && streamingAudio() ? streamInto(element, response.body, () => id !== playback) : URL.createObjectURL(await response.blob());
     if (id !== playback) { URL.revokeObjectURL(url); return; }
-    audio = new Audio(url);
-    audio.addEventListener('ended', () => { disconnectAudio?.(); disconnectAudio = undefined; URL.revokeObjectURL(url); }, { once: true });
-    audio.addEventListener('error', () => URL.revokeObjectURL(url), { once: true });
+    element.src = url;
+    element.addEventListener('ended', () => { disconnectAudio?.(); disconnectAudio = undefined; URL.revokeObjectURL(url); }, { once: true });
+    element.addEventListener('error', () => URL.revokeObjectURL(url), { once: true });
     // Mouth sync uses only this reply element. Speech recognition never reaches the analyser.
-    if (window.calebPortrait) disconnectAudio = await window.calebPortrait.connectAudio(audio);
+    if (window.calebPortrait) disconnectAudio = await window.calebPortrait.connectAudio(element);
     if (id !== playback) { disconnectAudio?.(); disconnectAudio = undefined; URL.revokeObjectURL(url); return; }
-    await audio.play();
+    await element.play();
   }
+}
+
+type MediaSourceClass = typeof MediaSource;
+
+function mediaSourceClass(): MediaSourceClass | undefined {
+  const scope = window as unknown as { ManagedMediaSource?: MediaSourceClass; MediaSource?: MediaSourceClass };
+  return scope.ManagedMediaSource ?? scope.MediaSource;
+}
+
+export function streamingAudio() {
+  const Source = mediaSourceClass();
+  return !!Source && typeof Source.isTypeSupported === 'function' && Source.isTypeSupported('audio/mpeg');
+}
+
+/** Feeds a streamed MP3 response into a MediaSource so playback can begin before the download ends. */
+function streamInto(element: HTMLAudioElement, body: ReadableStream<Uint8Array>, cancelled: () => boolean) {
+  const Source = mediaSourceClass()!;
+  const source = new Source();
+  // ManagedMediaSource (iOS Safari) only plays when remote playback is off.
+  (element as HTMLAudioElement & { disableRemotePlayback: boolean }).disableRemotePlayback = true;
+  source.addEventListener('sourceopen', async () => {
+    const buffer = source.addSourceBuffer('audio/mpeg');
+    buffer.mode = 'sequence';
+    const reader = body.getReader();
+    const appended = () => new Promise<void>(resolve => buffer.addEventListener('updateend', () => resolve(), { once: true }));
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done || cancelled()) break;
+        buffer.appendBuffer(value as Uint8Array<ArrayBuffer>);
+        await appended();
+      }
+      if (source.readyState === 'open') source.endOfStream();
+    } catch (error) {
+      console.error(error);
+      void reader.cancel();
+      if (source.readyState === 'open') source.endOfStream('decode');
+    }
+  }, { once: true });
+  return URL.createObjectURL(source);
 }
 
 async function errorMessage(response: Response) {

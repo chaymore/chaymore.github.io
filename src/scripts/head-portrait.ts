@@ -128,7 +128,7 @@ export async function initHeadPortrait(root: HTMLElement) {
     attentionObserver.observe(root,{attributes:true,attributeFilter:['data-attention']});
     addEventListener('pointermove',e=>{pointerX=e.clientX;pointerY=e.clientY;pointerSeen=performance.now();},{signal:events.signal,passive:true});
     // Eye target: the visitor's cursor when it moved recently, otherwise the camera.
-    const eyeMid=new THREE.Vector3(.069,.486,.6),eyeWorld=new THREE.Vector3(),target=new THREE.Vector3(),headTurn=new THREE.Quaternion();
+    const eyeMid=new THREE.Vector3(.049,.486,.6),eyeWorld=new THREE.Vector3(),target=new THREE.Vector3(),headTurn=new THREE.Quaternion();
     const lookTarget=(now:number,speaking:boolean)=>{
       head.updateWorldMatrix(true,false);
       eyeWorld.copy(eyeMid);head.localToWorld(eyeWorld);

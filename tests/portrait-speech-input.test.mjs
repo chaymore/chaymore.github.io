@@ -177,5 +177,5 @@ test('user speech never opens a microphone stream for mouth analysis', () => {
   const chat = readFileSync(new URL('../src/scripts/portrait-chat.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(input, /getUserMedia\s*\(|connectAudio\s*\(|new\s+MediaRecorder|new\s+MediaStream/);
   assert.doesNotMatch(chat, /getUserMedia\s*\(|new\s+MediaRecorder/);
-  assert.match(chat, /connectAudio\(audio\)/);
+  assert.match(chat, /connectAudio\(element\)/);
 });

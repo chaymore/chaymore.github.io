@@ -53,10 +53,17 @@ export class VoiceReferenceError extends Error {
   }
 }
 
-let referenceCache: { key: string; etag: string; dataUri: string } | undefined;
+let referenceCache: { key: string; etag: string; dataUri: string; checked: number } | undefined;
+/** How long to trust the cached reference before checking R2 for a replacement. */
+const REFERENCE_RECHECK_MS = 10 * 60 * 1000;
 
 export function resetReferenceCache() {
   referenceCache = undefined;
+}
+
+/** Forces the next request to check R2 for a replaced reference. */
+export function expireReferenceCache() {
+  if (referenceCache) referenceCache.checked = 0;
 }
 
 export async function voiceStatus(env: SpeechEnv): Promise<VoiceStatus> {
@@ -118,10 +125,14 @@ async function resolveReference(env: SpeechEnv): Promise<CloneReference | null> 
   if (objectKey.includes('..') || !/^[A-Za-z0-9._/-]{1,200}$/.test(objectKey)) {
     throw new VoiceReferenceError('FISH_REFERENCE_KEY is not a usable R2 object key.');
   }
+  if (referenceCache?.key === objectKey && Date.now() - referenceCache.checked < REFERENCE_RECHECK_MS) {
+    return { kind: 'audio', dataUri: referenceCache.dataUri, transcript: transcript(env) };
+  }
   const head = await env.VOICE_REFERENCE.head(objectKey);
   if (!head) return null;
   const etag = head.etag ?? '';
   if (referenceCache?.key === objectKey && referenceCache.etag === etag) {
+    referenceCache.checked = Date.now();
     return { kind: 'audio', dataUri: referenceCache.dataUri, transcript: transcript(env) };
   }
   const object = await env.VOICE_REFERENCE.get(objectKey);
@@ -129,7 +140,7 @@ async function resolveReference(env: SpeechEnv): Promise<CloneReference | null> 
   const bytes = new Uint8Array(await object.arrayBuffer());
   const hint = object.httpMetadata?.contentType || head.httpMetadata?.contentType || objectKey;
   const dataUri = dataUriFromBytes(bytes, hint);
-  referenceCache = { key: objectKey, etag, dataUri };
+  referenceCache = { key: objectKey, etag, dataUri, checked: Date.now() };
   return { kind: 'audio', dataUri, transcript: transcript(env) };
 }
 

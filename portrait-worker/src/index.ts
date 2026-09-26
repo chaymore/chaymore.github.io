@@ -47,13 +47,16 @@ export default {
 
 async function ask(request: Request, env: Env, cors: HeadersInit): Promise<Response> {
   if (!originAllowed(request, env)) return responseJson({ error: 'Origin not allowed' }, 403, cors);
-  if (!(await withinRateLimit(request, env))) return responseJson({ error: 'Please wait a moment before asking again.' }, 429, cors);
 
+  const started = Date.now();
   const body = await readJson<{ question?: unknown; history?: unknown }>(request);
   const question = typeof body.question === 'string' ? body.question.trim().slice(0, 600) : '';
   if (!question) return responseJson({ error: 'Please ask a question.' }, 400, cors);
   const history = normalizeHistory(body.history);
-  const chunks = await retrieve(question, env.DB);
+  // The rate limit and retrieval don't depend on each other, so run them together.
+  const [allowed, chunks] = await Promise.all([withinRateLimit(request, env), retrieve(question, env.DB)]);
+  if (!allowed) return responseJson({ error: 'Please wait a moment before asking again.' }, 429, cors);
+  const prepared = Date.now();
   const context = chunks.length
     ? chunks.map((chunk, index) => `[${index + 1}] ${chunk.source_title} — ${chunk.section}\n${chunk.content}`).join('\n\n')
     : 'No relevant approved context was found.';
@@ -70,6 +73,8 @@ async function ask(request: Request, env: Env, cors: HeadersInit): Promise<Respo
       ],
       max_tokens: 300,
       stream: true,
+      // Route to whichever provider is answering fastest right now.
+      provider: { sort: 'latency' },
     }),
   });
   if (!upstream.ok || !upstream.body) {
@@ -80,24 +85,29 @@ async function ask(request: Request, env: Env, cors: HeadersInit): Promise<Respo
   headers.set('content-type', 'text/plain; charset=utf-8');
   headers.set('cache-control', 'no-store');
   headers.set('x-content-type-options', 'nosniff');
+  headers.set('server-timing', `prep;dur=${prepared - started}, model;dur=${Date.now() - prepared}`);
+  headers.set('access-control-expose-headers', 'server-timing');
   return new Response(openRouterTextStream(upstream.body), { headers });
 }
 
 async function speak(request: Request, env: Env, cors: HeadersInit): Promise<Response> {
   if (!originAllowed(request, env)) return responseJson({ error: 'Origin not allowed' }, 403, cors);
-  if (!(await withinRateLimit(request, env))) return responseJson({ error: 'Please wait a moment before asking again.' }, 429, cors);
+  const started = Date.now();
   const body = await readJson<{ text?: unknown }>(request);
   const text = typeof body.text === 'string' ? body.text.trim().slice(0, 1800) : '';
   if (!text) return responseJson({ error: 'No speech supplied.' }, 400, cors);
 
   let plan;
   try {
-    plan = await planSpeech(text, env);
+    const [allowed, planned] = await Promise.all([withinRateLimit(request, env), planSpeech(text, env)]);
+    if (!allowed) return responseJson({ error: 'Please wait a moment before asking again.' }, 429, cors);
+    plan = planned;
   } catch (error) {
     if (!(error instanceof VoiceReferenceError)) throw error;
     console.error('Voice reference', error.message);
     return responseJson({ error: 'The cloned voice is unavailable right now.' }, 502, cors);
   }
+  const prepared = Date.now();
 
   const upstream = await fetch('https://openrouter.ai/api/v1/audio/speech', {
     method: 'POST',
@@ -108,7 +118,10 @@ async function speak(request: Request, env: Env, cors: HeadersInit): Promise<Res
     console.error('OpenRouter speech failed', upstream.status, await upstream.text());
     return responseJson({ error: 'Speech is unavailable right now.' }, 502, cors);
   }
-  return new Response(upstream.body, { headers: speechResponseHeaders(cors, plan.mode) });
+  const headers = speechResponseHeaders(cors, plan.mode);
+  headers.set('server-timing', `prep;dur=${prepared - started}, voice;dur=${Date.now() - prepared}`);
+  headers.set('access-control-expose-headers', 'x-portrait-voice, server-timing');
+  return new Response(upstream.body, { headers });
 }
 
 async function syncContext(request: Request, env: Env, cors: HeadersInit): Promise<Response> {
@@ -190,10 +203,10 @@ async function withinRateLimit(request: Request, env: Env) {
   const digest = await crypto.subtle.digest('SHA-256', encoder.encode(`${env.RATE_LIMIT_SALT}:${ip}`));
   const key = [...new Uint8Array(digest)].slice(0, 12).map(byte => byte.toString(16).padStart(2, '0')).join('');
   const minute = Math.floor(Date.now() / 60000);
-  await env.DB.prepare(`INSERT INTO request_limits (key, minute, count) VALUES (?, ?, 1)
-    ON CONFLICT(key, minute) DO UPDATE SET count = count + 1`).bind(key, minute).run();
-  const row = await env.DB.prepare('SELECT count FROM request_limits WHERE key = ? AND minute = ?').bind(key, minute).first<{ count: number }>();
-  if (Math.random() < 0.02) await env.DB.prepare('DELETE FROM request_limits WHERE minute < ?').bind(minute - 10).run();
+  // One round trip: count this request and read the total back.
+  const row = await env.DB.prepare(`INSERT INTO request_limits (key, minute, count) VALUES (?, ?, 1)
+    ON CONFLICT(key, minute) DO UPDATE SET count = count + 1 RETURNING count`).bind(key, minute).first<{ count: number }>();
+  if (Math.random() < 0.02) void env.DB.prepare('DELETE FROM request_limits WHERE minute < ?').bind(minute - 10).run();
   return (row?.count ?? 1) <= 12;
 }
 

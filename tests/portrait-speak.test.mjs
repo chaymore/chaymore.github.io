@@ -7,7 +7,7 @@ import {
   VoiceReferenceError,
   bytesToBase64,
   planSpeech,
-  resetReferenceCache,
+  resetReferenceCache, expireReferenceCache,
   speechResponseHeaders,
   voiceStatus,
 } from '../portrait-worker/src/speech.ts';
@@ -108,9 +108,13 @@ test('an R2 clip is cloned, cached by etag, and a missing object keeps Harper', 
   assert.equal(second.body.input_references[0].input_audio.data, first.body.input_references[0].input_audio.data);
 
   store.set('caleb-reference.wav', { etag: 'v2', bytes: audio });
+  await planSpeech('Within the recheck window.', { VOICE_REFERENCE: bound });
+  assert.equal(bound.gets.length, 1, 'no R2 round trip while the cache is fresh');
+  expireReferenceCache();
   await planSpeech('Updated clip.', { VOICE_REFERENCE: bound });
   assert.equal(bound.gets.length, 2);
 
+  expireReferenceCache();
   const empty = bucket(new Map());
   const fallback = await planSpeech('No object.', { VOICE_REFERENCE: empty });
   assert.equal(fallback.mode, 'synthetic');

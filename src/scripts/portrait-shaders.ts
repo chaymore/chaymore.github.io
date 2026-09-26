@@ -19,10 +19,10 @@ export const aperture = /* glsl */ `
 // Needs a blink uniform declared before it.
 export const lids = /* glsl */ `
   uniform vec2 gaze;
-  const vec3 eyeL = vec3(-.150,.486,.515);
-  const vec3 eyeR = vec3(.288,.486,.515);
+  const vec3 eyeL = vec3(-.170,.486,.515);
+  const vec3 eyeR = vec3(.268,.486,.515);
   const float eyeRadius = .084;
-  const float eyeMidline = .069;
+  const float eyeMidline = .049;
   // u runs -1..1 across the eye, positive toward the nose. y is height above the eye center.
   void eyeLids(vec2 p, out float u, out float y, out float upper, out float lower, out float upperOpen) {
     bool left = p.x < eyeMidline;
@@ -68,8 +68,8 @@ export const deform = /* glsl */ `
   vec3 express(vec3 p) {
     float front = smoothstep(.38, .62, p.z);
     // Lid skin and the crease above it follow the closing lid a little.
-    float leftLid = eyeMask(p.xy, vec2(-.150, .515), vec2(.095, .03));
-    float rightLid = eyeMask(p.xy, vec2(.288, .515), vec2(.095, .03));
+    float leftLid = eyeMask(p.xy, vec2(-.170, .515), vec2(.095, .03));
+    float rightLid = eyeMask(p.xy, vec2(.268, .515), vec2(.095, .03));
     p.y -= blink * .012 * max(leftLid, rightLid) * front;
     float leftBrow = eyeMask(p.xy, vec2(-.145, .590), vec2(.115, .028));
     float rightBrow = eyeMask(p.xy, vec2(.279, .564), vec2(.145, .032));
