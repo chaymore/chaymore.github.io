@@ -17,6 +17,13 @@ export function cleanShape(value: Partial<MouthShape>): MouthShape {
 export function levelToMouth(rms: number): number {
   return Number.isFinite(rms) ? unit((rms - .012) * 7.5) ** .7 : 0;
 }
+/** 0 when this frame is well below the reply's recent peak (a gap between syllables), 1 near the peak. */
+export function syllableGate(level: number, peak: number): number {
+  if (!(level > 0) || !(peak > 0)) return 0;
+  const ratio = level / Math.max(peak, .2);
+  const t = Math.max(0, Math.min(1, (ratio - .45) / .4));
+  return t * t * (3 - 2 * t);
+}
 export function cueAt(cues: VisemeCue[], time: number): MouthShape {
   const cue = cues.find(c => time >= c.start && time < c.end);
   return cue ? SHAPES[cue.shape] : REST;
@@ -46,6 +53,8 @@ export class PortraitSpeech {
   private cues: VisemeCue[] = [];
   private clock: () => number = () => 0;
   private connection = 0;
+  /** Recent loudness peak, so the syllable gate adapts to how loud this reply is. */
+  private peak = 0;
   readonly current: MouthShape = { ...REST };
   viseme: Viseme = 'rest';
   /** Reply loudness, 0–1, for head and brow motion. */
@@ -55,7 +64,7 @@ export class PortraitSpeech {
   setVisemes(cues: VisemeCue[], clock: () => number) {
     this.cues = validateCues(cues); this.clock = clock; this.mode = 'visemes';
   }
-  reset() { this.level = 0; this.mode = 'manual'; this.manual = { ...REST }; this.viseme = 'rest'; this.audioMs = 0; this.lips.reset(); }
+  reset() { this.level = 0; this.peak = 0; this.mode = 'manual'; this.manual = { ...REST }; this.viseme = 'rest'; this.audioMs = 0; this.lips.reset(); }
   disconnect() {
     this.connection++;
     if (this.source && this.analyser) this.source.disconnect(this.analyser);
@@ -112,16 +121,25 @@ export class PortraitSpeech {
       this.audioMs += Math.min(100, Math.max(0, Number.isFinite(dt) ? dt*1000 : 0));
       const detected = this.lips.read(this.spectrum, this.sampleRate, this.fftSize, this.audioMs);
       level = levelToMouth(rms);
-      // The noise gate stays on waveform energy. Shape comes from the viseme, not loudness.
-      if (levelToMouth(rms) === 0) { this.viseme = 'rest'; target = REST; }
-      else { this.viseme = detected; target = SHAPES[detected]; }
+      // Shape comes from the viseme. How far it opens follows the syllable envelope, so the
+      // lips meet in the quiet gaps between syllables instead of hovering half open.
+      const ms = Math.min(100, Math.max(0, Number.isFinite(dt) ? dt * 1000 : 0));
+      this.peak = Math.max(level, this.peak * Math.exp(-ms / 900));
+      const gate = syllableGate(level, this.peak);
+      if (level === 0 || gate === 0 || detected === 'MBP') { this.viseme = level === 0 ? 'rest' : detected; target = REST; }
+      else {
+        this.viseme = detected;
+        const shape = SHAPES[detected];
+        target = { open: shape.open * gate, round: shape.round * Math.max(gate, .4), wide: shape.wide * Math.max(gate, .4) };
+      }
     } else { this.viseme = 'rest'; level = target.open; }
     const step = Math.max(0, Math.min(.1, Number.isFinite(dt) ? dt : 0));
     this.level += (level - this.level) * (1 - Math.exp(-step * 20));
     for (const key of ['open','round','wide'] as const) {
       // The jaw is heavier than the lips: opening eases a little slower than lip shaping,
       // which blends neighbouring visemes instead of snapping between them.
-      const speed = key === 'open' ? (target[key] > this.current[key] ? 24 : 18) : (target[key] > this.current[key] ? 30 : 22);
+      // Closing is quick: lips snap shut on consonants and pauses faster than the jaw opens.
+      const speed = key === 'open' ? (target[key] > this.current[key] ? 26 : 34) : (target[key] > this.current[key] ? 30 : 26);
       this.current[key] += (target[key]-this.current[key]) * (1-Math.exp(-step*speed));
       if (this.current[key] < .0001) this.current[key] = 0;
     }

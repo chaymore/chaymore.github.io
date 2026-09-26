@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { PortraitSpeech, cleanShape, levelToMouth, cueAt, validateCues, REST } from '../src/scripts/portrait-speech.ts';
+import { PortraitSpeech, cleanShape, levelToMouth, cueAt, validateCues, syllableGate, REST } from '../src/scripts/portrait-speech.ts';
 
 test('silence and noise do not open the mouth; strong input remains bounded',()=>{
   for(const rms of [0,.005,.012,NaN,Infinity,-1])assert.equal(levelToMouth(rms),0);
@@ -52,4 +52,11 @@ test('switching audio sources disconnects only this analyser, preserving caller 
   tone=0;for(let i=0;i<100;i++)driver.update(.02);
   assert.deepEqual(driver.current,REST);
   disconnectNew();assert.equal(second.disconnections.length,1);
+});
+test('the mouth closes in the gaps between syllables, not only in silence',()=>{
+  assert.equal(syllableGate(0,.8),0);
+  assert.equal(syllableGate(.2,.8),0,'a quiet gap well below the recent peak closes the lips');
+  assert.equal(syllableGate(.8,.8),1);
+  assert.ok(syllableGate(.5,.8)>0&&syllableGate(.5,.8)<1);
+  assert.ok(syllableGate(.15,.15)>.5,'a quiet but steady reply still opens most of the way');
 });
